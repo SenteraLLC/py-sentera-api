@@ -1,0 +1,17 @@
+name: sentera-api
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6
+  # dev dependencies
+  - pytest
+  - pylint
+  - sphinx
+  - sphinx_rtd_theme
+  - m2r
+  # main dependencies
+  # subpackage dependencies
+  # private dependencies
+#  - pip
+#  - pip:
+#    - git+ssh://git@github.com/SenteraLLC/py-utils@v2.1.0
