@@ -47,7 +47,7 @@ def get_weather(weather_type, weather_variables, weather_interval, time_interval
     :param weather_variables: list of strings (e.g. *['temperature', 'relative-humidity']*) or
                               list of :code:`sentera.weather.WeatherVariable`'s
     :param weather_interval: either a string (e.g. *'hourly'*) or :code:`sentera.weather.WeatherInterval`
-    :param time_interval: [*day_start*, *day_end*] in format **YYYY-MM-DD** (eg. *['2020/01/01', '2020/01/03']*)
+    :param time_interval: [*day_start*, *day_end*] in format **YYYY/MM/DD** (eg. *['2020/01/01', '2020/01/03']*)
     :param field_name: name of field. **Optional**, could instead specify *field_location* or *field_id*
     :param field_location: [*lat*, *long*]. **Optional**, could instead specify *field_name* or *field_id*
     :param field_id: Sentera id of field. **Optional**, could instead specify *field_name** or **field_location*
