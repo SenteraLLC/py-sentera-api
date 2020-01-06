@@ -61,6 +61,15 @@ Test your SSH setup with:
 6) Run all scripts with:
 
         >> pipenv run scripts/<script.py> [--args]
+        
+### Examples
+
+Open the Jupyter Notebook examples by running within the **py-sentera-api** repo
+
+        >> conda activate sentera-api
+        >> jupyter notebook
+
+then open *examples/API_examples.ipynb*
    
 ### Documentation
 
