@@ -12,6 +12,9 @@ m2r = "*"
 
 [packages]
 sentera = {editable = true,path = "."}
+requests = "*"
+jupyter = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.6"

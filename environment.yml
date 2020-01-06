@@ -10,6 +10,9 @@ dependencies:
   - sphinx_rtd_theme
   - m2r
   # main dependencies
+  - requests
+  - jupyter
+  - pandas
   # subpackage dependencies
   # private dependencies
 #  - pip
