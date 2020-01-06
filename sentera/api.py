@@ -27,10 +27,11 @@ def _run_weather_query(url, params):
 
 def get_all_fields(token):
     """
-    Returns a pandas dataframe with information on each field (*sentera_id*, *name*, *latitude*, *longitude*)
+    Returns a pandas dataframe with information on each field within the user's account
+    (*sentera_id*, *name*, *latitude*, *longitude*)
 
-    :param token: Sentera auth token
-    :return: **fields_dataframe**
+    :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
+    :return: **fields_dataframe** - pandas dataframe
     """
     query = {'query': 'query AllFields{ fields { total_count results{sentera_id name latitude longitude}}}'}
     result = _run_sentera_query(query, token)
@@ -42,15 +43,17 @@ def get_weather(weather_type, weather_variables, weather_interval, time_interval
     """
     Returns a pandas dataframe with desired weather information
 
-    :param weather_type: either a string (e.g. 'recent', 'historical') or sentera.weather.WeatherType
-    :param weather_variables: list of strings (e.g. ['temperature', 'relative-humidity']) or list of sentera.weather.WeatherVariable
-    :param weather_interval: either a string (e.g. 'hourly', 'daily') or sentera.weather.WeatherInterval
-    :param time_interval: [day_start, day_end] in format YYYY-MM-DD (eg. 2020/01/01)
-    :param field_name: name of field. Optional, could also specify *field_location* or *field_id*
-    :param field_location: [lat, long]. Optional, could also specify *field_name* or *field_id*
-    :param field_id: Sentera id of field. Optional, could also specify *field_name** or **field_location*
-    :param token: Sentera auth token if accessing fields by name or id
-    :return: **weather_dataframe**
+    :param weather_type: either a string (e.g. *'recent'*) or :code:`sentera.weather.WeatherType`
+    :param weather_variables: list of strings (e.g. *['temperature', 'relative-humidity']*) or
+                              list of :code:`sentera.weather.WeatherVariable`'s
+    :param weather_interval: either a string (e.g. *'hourly'*) or :code:`sentera.weather.WeatherInterval`
+    :param time_interval: [*day_start*, *day_end*] in format **YYYY-MM-DD** (eg. *['2020/01/01', '2020/01/03']*)
+    :param field_name: name of field. **Optional**, could instead specify *field_location* or *field_id*
+    :param field_location: [*lat*, *long*]. **Optional**, could instead specify *field_name* or *field_id*
+    :param field_id: Sentera id of field. **Optional**, could instead specify *field_name** or **field_location*
+    :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
+                  Needed if accessing fields by *field_name* or *field_id*
+    :return: **weather_dataframe** - pandas dataframe
     """
 
     if not field_name and not field_location and not field_id:
@@ -78,14 +81,14 @@ def get_weather(weather_type, weather_variables, weather_interval, time_interval
     weather_interval = weather.WeatherInterval(weather_interval)
 
     try:
-        datetime.datetime.strptime(time_interval[0], '%Y-%m-%d')
+        datetime.datetime.strptime(time_interval[0], '%Y/%m/%d')
     except ValueError:
-        raise ValueError("Incorrect time interval format, should be YYYY-MM-DD")
+        raise ValueError("Incorrect time interval format, should be YYYY/MM/DD")
 
     try:
-        datetime.datetime.strptime(time_interval[1], '%Y-%m-%d')
+        datetime.datetime.strptime(time_interval[1], '%Y/%m/%d')
     except ValueError:
-        raise ValueError("Incorrect time interval format, should be YYYY-MM-DD")
+        raise ValueError("Incorrect time interval format, should be YYYY/MM/DD")
 
     data_df = pd.DataFrame(columns=["validTime"])
     for weather_variable in weather_variables:

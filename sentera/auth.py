@@ -2,6 +2,13 @@ import requests
 
 
 def get_auth_token(email, password):
+    """
+    Returns authentication token needed by :code:`sentera.api` calls
+
+    :param email: sentera email
+    :param password: sentera password
+    :return: **token** - authentication token
+    """
     # The GraphQL query (with a few aditional bits included) itself defined as a multi-line string.
     query = {
         "session":
