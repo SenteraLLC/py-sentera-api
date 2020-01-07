@@ -13,6 +13,7 @@ dependencies:
   - requests
   - jupyter
   - pandas
+  - aiohttp
   # subpackage dependencies
   # private dependencies
 #  - pip

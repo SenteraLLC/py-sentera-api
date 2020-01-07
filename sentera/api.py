@@ -4,6 +4,8 @@ from pandas.io.json import json_normalize
 import datetime
 import json
 import pandas as pd
+import aiohttp
+import asyncio
 
 
 def _run_sentera_query(query, token):
@@ -15,14 +17,47 @@ def _run_sentera_query(query, token):
     return request.json()
 
 
-def _run_weather_query(url, params):
-    request = requests.get(url=url,
-                           params=params,
-                           headers=weather.WEATHER_HEADER)
-    if request.status_code != 200:
-        raise Exception(f"Request Failed {request.status_code}. {url} - {params}")
+async def _fetch(url, session, weather_variable, time_interval):
+    num_retries = 0
+    while num_retries < 10:
+        try:
+            async with session.get(url, params=weather.create_params(weather_variable, time_interval), raise_for_status=True) as response:
+                return await response.read(), weather_variable
+        except aiohttp.ClientError:
+            # sleep a little and try again
+            await asyncio.sleep(1)
+            num_retries += 1
 
-    return json.loads(request.content)
+
+async def _run_weather_queries(url_list, weather_variable_list, time_interval, locations):
+    tasks = []
+
+    async with aiohttp.ClientSession(headers=weather.WEATHER_HEADER) as session:
+        for url, weather_variable in zip(url_list, weather_variable_list):
+            task = asyncio.ensure_future(_fetch(url, session, weather_variable, time_interval))
+            tasks.append(task)
+
+        responses = await asyncio.gather(*tasks)
+
+        data_df = pd.DataFrame(columns=["validTime", "lat", "long"])
+        for response, weather_variable in responses:
+            try:
+                response_json = json.loads(response)
+                data = json_normalize(response_json['series'])
+                data = data.rename(columns={"value": str(weather_variable)}).drop(columns=["products"])
+                data["lat"] = response_json['latitude']
+                data["long"] = response_json['longitude']
+
+                data_df = data_df.merge(data, on=["validTime", "lat", "long"], how="outer", suffixes=["", "_"])
+                if str(weather_variable) + "_" in data_df:
+                    indx = data_df[str(weather_variable) + "_"].notnull()
+                    data_df.loc[indx, str(weather_variable)] = data_df.loc[indx, str(weather_variable) + "_"]
+                    data_df.drop(str(weather_variable) + "_", inplace=True, axis=1)
+            except Exception as e:
+                print(response)
+                raise e
+
+    return data_df
 
 
 def get_all_fields(token):
@@ -39,7 +74,8 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
-def get_weather(weather_type, weather_variables, weather_interval, time_interval, field_name=None, field_location=None, field_id=None, token=None):
+async def get_weather(weather_type, weather_variables, weather_interval, time_interval, field_names=None,
+                field_locations=None, field_ids=None, token=None):
     """
     Returns a pandas dataframe with desired weather information
 
@@ -48,34 +84,45 @@ def get_weather(weather_type, weather_variables, weather_interval, time_interval
                               list of :code:`sentera.weather.WeatherVariable`'s
     :param weather_interval: either a string (e.g. *'hourly'*) or :code:`sentera.weather.WeatherInterval`
     :param time_interval: [*day_start*, *day_end*] in format **YYYY/MM/DD** (eg. *['2020/01/01', '2020/01/03']*)
-    :param field_name: name of field. **Optional**, could instead specify *field_location* or *field_id*
-    :param field_location: [*lat*, *long*]. **Optional**, could instead specify *field_name* or *field_id*
-    :param field_id: Sentera id of field. **Optional**, could instead specify *field_name** or **field_location*
+    :param field_names: list of names of fields. **Optional**, could instead specify *field_locations* or *field_ids*
+    :param field_locations: list of [*lat*, *long*] pairs. **Optional**, could instead specify *field_names* or
+                            *field_ids*
+    :param field_ids: list of Sentera ids of fields. **Optional**, could instead specify *field_names** or
+                      **field_locations*
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
                   Needed if accessing fields by *field_name* or *field_id*
     :return: **weather_dataframe** - pandas dataframe
     """
 
-    if not field_name and not field_location and not field_id:
-        raise ValueError("A location needs to be specified by either field name, id, or [lat, long] pair")
+    if not field_names and not field_locations and not field_ids:
+        raise ValueError("Locations need to be specified by either field names, ids, or [lat, long] pairs")
 
-    if field_name:
+    if field_names:
         if token:
             fields = get_all_fields(token)
         else:
             raise ValueError("Sentera auth token needed to access fields by name")
-        field_df = fields[fields["name"] == field_name]
-        if field_df.empty:
-            raise ValueError(f"Couldn't find field named: {field_name}")
-        field_df = field_df.iloc[0]
-        field_location = [field_df["latitude"], field_df["longitude"]]
-    elif field_id:
+
+        field_locations = []
+        for field_name in field_names:
+            field_df = fields[fields["name"] == field_name]
+            if field_df.empty:
+                raise ValueError(f"Couldn't find field named: {field_name}")
+            field_df = field_df.iloc[0]
+            field_locations.append([field_df["latitude"], field_df["longitude"]])
+    elif field_ids:
         if token:
             fields = get_all_fields(token)
         else:
             raise ValueError("Sentera auth token needed to access fields by name")
-        field_df = fields[fields["sentera_id"] == field_id].iloc[0]
-        field_location = [field_df["latitude"], field_df["longitude"]]
+
+        field_locations = []
+        for field_id in field_ids:
+            field_df = fields[fields["sentera_id"] == field_id]
+            if field_df.empty:
+                raise ValueError(f"Couldn't find field id: {field_id}")
+            field_df = field_df.iloc[0]
+            field_locations.append([field_df["latitude"], field_df["longitude"]])
 
     weather_type = weather.WeatherType(weather_type)
     weather_interval = weather.WeatherInterval(weather_interval)
@@ -90,15 +137,19 @@ def get_weather(weather_type, weather_variables, weather_interval, time_interval
     except ValueError:
         raise ValueError("Incorrect time interval format, should be YYYY/MM/DD")
 
-    data_df = pd.DataFrame(columns=["validTime"])
-    for weather_variable in weather_variables:
-        weather_variable = weather.WeatherVariable(weather_variable)
-        weather_url = weather.build_weather_url(weather_type,
-                                                weather_variable,
-                                                weather_interval,
-                                                field_location[0],
-                                                field_location[1])
-        data = json_normalize(_run_weather_query(weather_url, weather.create_params(weather_variable, time_interval))['series'])
-        data = data.rename(columns={"value": str(weather_variable)}).drop(columns=["products"])
-        data_df = pd.merge(data, data_df, on="validTime", how="outer")
-    return data_df
+    url_list = []
+    weather_variables_list = []
+    locations = []
+    for field_location in field_locations:
+        for weather_variable in weather_variables:
+            weather_variable = weather.WeatherVariable(weather_variable)
+            weather_url = weather.build_weather_url(weather_type,
+                                                    weather_variable,
+                                                    weather_interval,
+                                                    field_location[0],
+                                                    field_location[1])
+            url_list.append(weather_url)
+            weather_variables_list.append(weather_variable)
+            locations.append(field_location)
+
+    return await _run_weather_queries(url_list, weather_variables_list, time_interval, locations)
