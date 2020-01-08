@@ -118,9 +118,9 @@ def split_time_interval(time_interval, weather_type, weather_interval):
                              f"Earliest allowable start date is {(today - datetime.timedelta(days=730)).date()}")
 
         if weather_interval == WeatherInterval.Daily:
-            delta = datetime.timedelta(days=180)
+            delta = datetime.timedelta(days=90)
         else:
-            delta = datetime.timedelta(days=10)
+            delta = datetime.timedelta(days=5)
 
         time_intervals = []
         current_time = start
