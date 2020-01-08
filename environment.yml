@@ -13,6 +13,8 @@ dependencies:
   - requests
   - jupyter
   - pandas
+  - aiohttp
+  - tqdm
   # subpackage dependencies
   # private dependencies
 #  - pip
