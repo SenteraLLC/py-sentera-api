@@ -104,9 +104,6 @@ async def get_weather(weather_type, weather_variables, weather_interval, time_in
                   Needed if accessing fields by *field_name* or *field_id*
     :return: **weather_dataframe** - pandas dataframe
     """
-
-    counter = 0
-
     if not field_names and not field_locations and not field_ids:
         raise ValueError("Locations need to be specified by either field names, ids, or [lat, long] pairs")
 
