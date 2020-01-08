@@ -14,7 +14,10 @@ dependencies:
   - jupyter
   - pandas
   - aiohttp
+<<<<<<< HEAD
   - tqdm
+=======
+>>>>>>> 4ecc093390d2d5ca1c3d01224889510783f80cc5
   # subpackage dependencies
   # private dependencies
 #  - pip

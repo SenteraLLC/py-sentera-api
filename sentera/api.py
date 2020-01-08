@@ -8,8 +8,6 @@ import aiohttp
 import asyncio
 import tqdm
 
-counter = 0
-
 
 def _run_sentera_query(query, token):
     headers = {'Authorization': token}
