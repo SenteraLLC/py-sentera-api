@@ -27,15 +27,14 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
                                    raise_for_status=True) as response:
                 return await response.read(), weather_variable
         except aiohttp.ClientError as e:
-            print(e)
-            # sleep a little and try again
+            # print(e)
             await asyncio.sleep(1)
             num_retries += 1
 
     raise aiohttp.ClientError(f"Couldn't access data from {url} from {time_interval[0]} to {time_interval[1]}")
 
 
-async def _run_weather_queries_past(url_list, weather_variable_list, time_interval, weather_interval, weather_type):
+async def _run_weather_queries(url_list, weather_variable_list, time_interval, weather_interval, weather_type):
     tasks = []
 
     async with aiohttp.ClientSession(headers=weather.WEATHER_HEADER) as session:
@@ -82,8 +81,7 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
-async def get_weather(weather_type, weather_variables, weather_interval, time_interval=None, field_names=None,
-                      field_locations=None, field_ids=None, token=None):
+async def get_weather(weather_type, weather_variables, weather_interval, location_list, time_interval=None):
     """
     Returns a pandas dataframe with desired weather information
 
@@ -93,45 +91,9 @@ async def get_weather(weather_type, weather_variables, weather_interval, time_in
     :param weather_interval: either a string (e.g. *'hourly'*) or :code:`sentera.weather.WeatherInterval`
     :param time_interval: [*day_start*, *day_end*] in format **YYYY/MM/DD** (eg. *['2020/01/01', '2020/01/03']*).
                           Needed for *recent* weather types, but no others.
-    :param field_names: list of names of fields. **Optional**, could instead specify *field_locations* or *field_ids*
-    :param field_locations: list of [*lat*, *long*] pairs. **Optional**, could instead specify *field_names* or
-                            *field_ids*
-    :param field_ids: list of Sentera ids of fields. **Optional**, could instead specify *field_names** or
-                      **field_locations*
-    :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
-                  Needed if accessing fields by *field_name* or *field_id*
+    :param location_list: list of locations defined by (*lat*, *long*) to get weather for
     :return: **weather_dataframe** - pandas dataframe
     """
-    if not field_names and not field_locations and not field_ids:
-        raise ValueError("Locations need to be specified by either field names, ids, or [lat, long] pairs")
-
-    if field_names:
-        if token:
-            fields = get_all_fields(token)
-        else:
-            raise ValueError("Sentera auth token needed to access fields by name")
-
-        field_locations = []
-        for field_name in field_names:
-            field_df = fields[fields["name"] == field_name]
-            if field_df.empty:
-                raise ValueError(f"Couldn't find field named: {field_name}")
-            field_df = field_df.iloc[0]
-            field_locations.append([field_df["latitude"], field_df["longitude"]])
-    elif field_ids:
-        if token:
-            fields = get_all_fields(token)
-        else:
-            raise ValueError("Sentera auth token needed to access fields by name")
-
-        field_locations = []
-        for field_id in field_ids:
-            field_df = fields[fields["sentera_id"] == field_id]
-            if field_df.empty:
-                raise ValueError(f"Couldn't find field id: {field_id}")
-            field_df = field_df.iloc[0]
-            field_locations.append([field_df["latitude"], field_df["longitude"]])
-
     weather_type = weather.WeatherType(weather_type)
     weather_interval = weather.WeatherInterval(weather_interval)
 
@@ -154,7 +116,7 @@ async def get_weather(weather_type, weather_variables, weather_interval, time_in
 
     # time_intervals = split_time_interval(start, end, weather_type)
 
-    for field_location in field_locations:
+    for field_location in location_list:
         for weather_variable in weather_variables:
             weather_variable = weather.WeatherVariable(weather_variable)
             weather_url = weather.build_weather_url(weather_type,
@@ -165,8 +127,8 @@ async def get_weather(weather_type, weather_variables, weather_interval, time_in
             url_list.append(weather_url)
             weather_variables_list.append(weather_variable)
 
-    return await _run_weather_queries_past(url_list,
-                                           weather_variables_list,
-                                           time_interval,
-                                           weather_interval,
-                                           weather_type)
+    return await _run_weather_queries(url_list,
+                                      weather_variables_list,
+                                      time_interval,
+                                      weather_interval,
+                                      weather_type)
