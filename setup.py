@@ -11,6 +11,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     install_requires=[
+        "requests",
+        "aiohttp",
+        "pandas",
+        "tqdm"
     ],
     extras_require={
         'dev': [
@@ -18,7 +22,8 @@ setuptools.setup(
             'sphinx_rtd_theme',
             'pylint',
             'm2r',
-            "sphinx"
+            "sphinx",
+            "jupyter"
         ]
     },
 )
