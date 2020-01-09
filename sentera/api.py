@@ -1,6 +1,7 @@
 import requests
 from sentera import weather
 from pandas.io.json import json_normalize
+import asyncio
 
 
 def _run_sentera_query(query, token):
@@ -26,7 +27,7 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
-async def get_weather(weather_type, weather_variables, weather_interval, location_list, time_interval=None):
+def get_weather(weather_type, weather_variables, weather_interval, location_list, time_interval=None):
     """
     Returns a pandas dataframe with desired weather information
 
@@ -61,8 +62,10 @@ async def get_weather(weather_type, weather_variables, weather_interval, locatio
                 weather_variables_list.append(weather_variable)
                 time_interval_list.append(time_interval)
 
-    return await weather.run_queries(url_list,
-                                     weather_variables_list,
-                                     time_interval_list,
-                                     weather_interval,
-                                     weather_type)
+    loop = asyncio.get_event_loop()
+    weather_df = loop.run_until_complete(weather.run_queries(url_list,
+                                                             weather_variables_list,
+                                                             time_interval_list,
+                                                             weather_interval,
+                                                             weather_type))
+    return weather_df
