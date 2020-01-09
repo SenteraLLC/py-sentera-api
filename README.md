@@ -14,5 +14,5 @@ Install with:
 2) Click the button *Open in Playground* in the top left.
 3) Click the button *Connect* in the top right.
 4) Code examples can be run by clicking the play buttons next to them.  Make sure to run the 
-   setup code first.
+   setup code first.  You'll have to enter your Sentera username and password.
 5) If you want to save your changes, click *Copy to Drive* in the top left.
