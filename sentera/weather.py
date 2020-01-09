@@ -148,7 +148,7 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
                                    raise_for_status=True) as response:
                 return await response.read(), weather_variable
         except aiohttp.ClientError as e:
-            print(e)
+            # print(e)
             await asyncio.sleep(1)
             num_retries += 1
 
