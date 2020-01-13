@@ -1,6 +1,6 @@
 ## py-sentera-api
 
-Python api to access Sentera data through GraphQL
+Python library to access Sentera data through GraphQL API
 
 ### Installation 
 
