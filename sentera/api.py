@@ -1,12 +1,17 @@
-import requests
-from sentera import weather
-from pandas.io.json import json_normalize
+"""Functions exposed to the user that make requests to the Sentera Weather API."""
 import asyncio
+
+import requests
+from pandas.io.json import json_normalize
+
+from sentera import weather
 
 
 def _run_sentera_query(query, token):
-    headers = {'Authorization': token}
-    request = requests.post(url='https://api.sentera.com/graphql', json=query, headers=headers)
+    headers = {"Authorization": token}
+    request = requests.post(
+        url="https://api.sentera.com/graphql", json=query, headers=headers
+    )
     if request.status_code != 200:
         raise Exception("Request Failed {}. {}".format(request.status_code, query))
 
@@ -15,21 +20,26 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Returns a pandas dataframe with information on each field within the user's account
-    (*sentera_id*, *name*, *latitude*, *longitude*)
+    Return a pandas dataframe with information on each field within the user's account.
+
+    Returned DataFrame has columns as follows: (*sentera_id*, *name*, *latitude*, *longitude*)
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :return: **fields_dataframe** - pandas dataframe
     """
-    query = {'query': 'query AllFields{ fields { total_count results{sentera_id name latitude longitude}}}'}
+    query = {
+        "query": "query AllFields{ fields { total_count results{sentera_id name latitude longitude}}}"
+    }
     result = _run_sentera_query(query, token)
-    data = result['data']['fields']['results']
+    data = result["data"]["fields"]["results"]
     return json_normalize(data)
 
 
-def get_weather(weather_type, weather_variables, weather_interval, location_list, time_interval=None):
+def get_weather(
+    weather_type, weather_variables, weather_interval, location_list, time_interval=None
+):
     """
-    Returns a pandas dataframe with desired weather information
+    Return a pandas DataFrame with desired weather information.
 
     :param weather_type: either a string (e.g. *'recent'*) or :code:`sentera.weather.WeatherType`
     :param weather_variables: list of strings (e.g. *['temperature', 'relative-humidity']*) or
@@ -47,25 +57,33 @@ def get_weather(weather_type, weather_variables, weather_interval, location_list
     weather_variables_list = []
     time_interval_list = []
 
-    time_intervals = weather.split_time_interval(time_interval, weather_type, weather_interval)
+    time_intervals = weather.split_time_interval(
+        time_interval, weather_type, weather_interval
+    )
 
     for time_interval in time_intervals:
         for field_location in location_list:
             for weather_variable in weather_variables:
                 weather_variable = weather.WeatherVariable(weather_variable)
-                weather_url = weather.build_weather_url(weather_type,
-                                                        weather_variable,
-                                                        weather_interval,
-                                                        field_location[0],
-                                                        field_location[1])
+                weather_url = weather.build_weather_url(
+                    weather_type,
+                    weather_variable,
+                    weather_interval,
+                    field_location[0],
+                    field_location[1],
+                )
                 url_list.append(weather_url)
                 weather_variables_list.append(weather_variable)
                 time_interval_list.append(time_interval)
 
     loop = asyncio.get_event_loop()
-    weather_df = loop.run_until_complete(weather.run_queries(url_list,
-                                                             weather_variables_list,
-                                                             time_interval_list,
-                                                             weather_interval,
-                                                             weather_type))
+    weather_df = loop.run_until_complete(
+        weather.run_queries(
+            url_list,
+            weather_variables_list,
+            time_interval_list,
+            weather_interval,
+            weather_type,
+        )
+    )
     return weather_df

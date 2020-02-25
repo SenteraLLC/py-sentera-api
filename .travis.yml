@@ -1,7 +1,9 @@
 language: python
-python: 3.6
+python: 3.7
 
 install:
-  - 'pip install .'
+  - pip install .['dev']
 
-script: echo "test"
+script:
+  - pre-commit run --all-files
+  - echo "test"
