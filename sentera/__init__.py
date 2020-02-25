@@ -1,3 +1,4 @@
-import sentera.api
-import sentera.auth
-import sentera.weather
+from sentera import api, auth, weather
+from sentera._version import __version__
+
+__all__ = ["__version__", "api", "auth", "weather"]
