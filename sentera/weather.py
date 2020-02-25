@@ -32,6 +32,7 @@ class WeatherVariable(Enum):
     HighTemperature = "high-temperature"
     LowTemperature = "low-temperature"
     Precipitation = "precipitation"
+    WindSpeed = "wind-speed"
 
     def __str__(self):
         return str(self.value)
@@ -59,7 +60,8 @@ PARAMETER_COMBINATIONS = {
                             {
                                 WeatherInterval.Hourly:
                                     [WeatherVariable.Temperature,
-                                     WeatherVariable.Humidity],
+                                     WeatherVariable.Humidity,
+                                     WeatherVariable.WindSpeed],
                                 WeatherInterval.Daily:
                                     [WeatherVariable.HighTemperature,
                                      WeatherVariable.LowTemperature,
