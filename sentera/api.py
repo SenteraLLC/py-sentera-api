@@ -1,3 +1,4 @@
+"""Functions exposed to the user that make requests to the Sentera Weather API."""
 import asyncio
 
 import requests
@@ -19,8 +20,9 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Returns a pandas dataframe with information on each field within the user's account
-    (*sentera_id*, *name*, *latitude*, *longitude*)
+    Return a pandas dataframe with information on each field within the user's account.
+
+    Returned DataFrame has columns as follows: (*sentera_id*, *name*, *latitude*, *longitude*)
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :return: **fields_dataframe** - pandas dataframe
@@ -37,7 +39,7 @@ def get_weather(
     weather_type, weather_variables, weather_interval, location_list, time_interval=None
 ):
     """
-    Returns a pandas dataframe with desired weather information
+    Return a pandas DataFrame with desired weather information.
 
     :param weather_type: either a string (e.g. *'recent'*) or :code:`sentera.weather.WeatherType`
     :param weather_variables: list of strings (e.g. *['temperature', 'relative-humidity']*) or

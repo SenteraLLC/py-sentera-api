@@ -1,9 +1,10 @@
+"""Functions to generate authorization credentials for use of the Sentera Weather API."""
 import requests
 
 
 def get_auth_token(email, password):
     """
-    Returns authentication token needed by :code:`sentera.api` calls
+    Return authentication token needed by :code:`sentera.api` calls.
 
     :param email: sentera email
     :param password: sentera password
