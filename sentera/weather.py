@@ -5,7 +5,7 @@ Possible values for weather types, variables, and intervals are constrained by t
 module, as well as a nested dict that enumerates all possible allowable combinations.
 
 Many of these functions have been defined to support asynchronous requests of weather data, and are invoked in an
-asynchronous manner by the "API" module.
+asynchronous manner by the ``sentera.api`` module.
 """
 import asyncio
 import datetime
@@ -104,9 +104,9 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
     """
     Construct the query URL to be passed as a request to the Weather API.
 
-    :param weather_type: Choice of weather type, as an instance of the WeatherType Enum
-    :param weather_variable: Choice of weather variable, as an instance of the WeatherVariable Enum
-    :param weather_interval: Choice of weather interval, as an instance of the WeatherInterval Enum
+    :param weather_type: Choice of weather type, as an instance of the ``sentera.weather.WeatherType`` Enum
+    :param weather_variable: Choice of weather variable, as an instance of the ``sentera.weather.WeatherVariable`` Enum
+    :param weather_interval: Choice of weather interval, as an instance of the ``sentera.weather.WeatherInterval`` Enum
     :param lat: Latitude coordinate at which to query weather at.
     :param long: Longitude coordinate at which to query weather at.
     :return: Constructed query URL, as string.
@@ -135,8 +135,8 @@ def create_params(weather_type, time_interval):
     """
     Construct query parameter dict to be passed as a request to the Weather API.
 
-    :param weather_type: Choice of weather type, as an instance of the WeatherType Enum
-    :param time_interval: Time interval, as a list of strings that conform to the 'YYYY/MM/DD' ISO8601 format.
+    :param weather_type: Choice of weather type, as an instance of the ``sentera.weather.WeatherType`` Enum
+    :param time_interval: Time interval, as a list of strings that conform to the **YYYY/MM/DD** ISO8601 format.
     :return: param_dict: Dict of query parameters.
     """
     param_dict = {"start": time_interval[0], "end": time_interval[1]}
@@ -156,9 +156,9 @@ def split_time_interval(time_interval, weather_type, weather_interval):
     for an entire week, a request must be constructed for every hour within the interval. This function constructs a
     list of those sub-intervals within the overall interval to be used to construct the queries.
 
-    :param time_interval: Overall time interval of request, in 'YYYY/MM/DD' ISO8601 format.
-    :param weather_type: Choice of weather type, as an instance of the WeatherType Enum
-    :param weather_interval: Choice of weather interval, as an instance of the WeatherInterval Enum
+    :param time_interval: Overall time interval of request, in **YYYY/MM/DD** ISO8601 format.
+    :param weather_type: Choice of weather type, as an instance of the ``sentera.weather.WeatherType`` Enum
+    :param weather_interval: Choice of weather interval, as an instance of the ``sentera.weather.WeatherInterval`` Enum
     :return: time_intervals: List of individual intervals to be constructed into individual queries
     """
     if weather_type == WeatherType.Recent:
@@ -238,10 +238,10 @@ async def run_queries(
     in a pandas DataFrame and eventually returned once all requests have completed.
 
     :param url_list: List of request URLS
-    :param weather_variable_list: List of weather variables, as instances of the WeatherVariable Enum
+    :param weather_variable_list: List of weather variables, as instances of the ``sentera.weather.WeatherVariable`` Enum
     :param time_interval_list: List of time intervals for each request
-    :param weather_interval: List of weather intervals, as instances of the WeatherInterval Enum
-    :param weather_type: List of weather types, as instances of the WeatherType Enum
+    :param weather_interval: List of weather intervals, as instances of the ``sentera.weather.WeatherInterval`` Enum
+    :param weather_type: List of weather types, as instances of the ``sentera.weather.WeatherType`` Enum
     :return: data_df: Pandas DataFrame of request results
     """
     tasks = []
