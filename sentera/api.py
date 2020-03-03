@@ -36,7 +36,12 @@ def get_all_fields(token):
 
 
 def get_weather(
-    weather_type, weather_variables, weather_interval, location_list, time_interval=None, dtn_key=None
+    weather_type,
+    weather_variables,
+    weather_interval,
+    location_list,
+    time_interval=None,
+    dtn_key=None,
 ):
     """
     Return a pandas DataFrame with desired weather information.

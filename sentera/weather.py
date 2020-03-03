@@ -227,7 +227,12 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
 
 
 async def run_queries(
-    url_list, weather_variable_list, time_interval_list, weather_interval, weather_type, dtn_key=None
+    url_list,
+    weather_variable_list,
+    time_interval_list,
+    weather_interval,
+    weather_type,
+    dtn_key=None,
 ):
     """
     Make a series of asynchronous requests to the Weather API.
