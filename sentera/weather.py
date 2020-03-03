@@ -227,7 +227,7 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
 
 
 async def run_queries(
-    url_list, weather_variable_list, time_interval_list, weather_interval, weather_type
+    url_list, weather_variable_list, time_interval_list, weather_interval, weather_type, dtn_key=None
 ):
     """
     Make a series of asynchronous requests to the Weather API.
@@ -242,9 +242,13 @@ async def run_queries(
     :param time_interval_list: List of time intervals for each request
     :param weather_interval: List of weather intervals, as instances of the ``sentera.weather.WeatherInterval`` Enum
     :param weather_type: List of weather types, as instances of the ``sentera.weather.WeatherType`` Enum
+    :param dtn_key: (optional) A DTN key giving access to the data. Has a default hard coded value that works.
     :return: data_df: Pandas DataFrame of request results
     """
     tasks = []
+
+    if dtn_key:
+        WEATHER_HEADER["X-API-Key"] = dtn_key
 
     async with aiohttp.ClientSession(headers=WEATHER_HEADER) as session:
         for url, weather_variable, time_interval in zip(
