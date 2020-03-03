@@ -36,7 +36,12 @@ def get_all_fields(token):
 
 
 def get_weather(
-    weather_type, weather_variables, weather_interval, location_list, time_interval=None
+    weather_type,
+    weather_variables,
+    weather_interval,
+    location_list,
+    time_interval=None,
+    dtn_key=None,
 ):
     """
     Return a pandas DataFrame with desired weather information.
@@ -48,6 +53,7 @@ def get_weather(
     :param time_interval: [*day_start*, *day_end*] in format **YYYY/MM/DD** (eg. *['2020/01/01', '2020/01/03']*).
                           Needed for *recent* weather types, but no others.
     :param location_list: list of locations defined by (*lat*, *long*) to get weather for
+    :param dtn_key: (optional) A DTN key giving access to the data. Has a default hard coded value that works.
     :return: **weather_dataframe** - pandas dataframe
     """
     weather_type = weather.WeatherType(weather_type)
@@ -84,6 +90,7 @@ def get_weather(
             time_interval_list,
             weather_interval,
             weather_type,
+            dtn_key,
         )
     )
     return weather_df
