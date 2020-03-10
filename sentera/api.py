@@ -8,15 +8,43 @@ from sentera import weather
 
 
 def _run_sentera_query(query, token):
-    headers = {"Authorization": token}
+    headers = {"Authorization": "Bearer {}".format(token)}
     request = requests.post(
-        url="https://api.sentera.com/graphql", json=query, headers=headers
+        url="http://localhost:3001/graphql", json=query, headers=headers
+        # url="https://api.sentera.com/graphql", json=query, headers=headers
     )
     if request.status_code != 200:
         raise Exception("Request Failed {}. {}".format(request.status_code, query))
 
     return request.json()
 
+def create_alert(field_sentera_id, name, message, token):
+    query = """mutation CreateAlert ($field_sentera_id: ID!, $name: String!, $message: String!) {
+    create_alert (
+    field_sentera_id: $field_sentera_id
+    name: $name
+    message: $message
+    )
+    {
+    sentera_id
+    name
+    message
+    created_by {
+        sentera_id
+        first_name
+        last_name
+        email
+        }
+        created_at
+    }
+}"""
+    variables = {
+        "field_sentera_id": field_sentera_id,
+        "name": name,
+        "message": message
+    }
+    result = _run_sentera_query({"query": query, "variables": variables}, token)
+    return result
 
 def get_all_fields(token):
     """
