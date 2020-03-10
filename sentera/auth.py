@@ -42,8 +42,14 @@ def get_client_token(client_id, client_secret):
     """
 
     data = { 'grant_type': 'client_credentials'}
-    result = requests.post(
+    response = requests.post(
         'http://localhost:3001/oauth/token',
         data=data, allow_redirects=False, auth=(client_id, client_secret)
     )
-    return result.json()
+    if response.status_code != 200:
+        raise Exception(
+            "Failed to authenticate using client credentials. Response code of {} and message: {}".format(
+                response.status_code, response.json()
+            )
+        )
+    return response.json()
