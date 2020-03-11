@@ -226,18 +226,13 @@ def split_time_interval(time_interval, weather_type, weather_interval):
     return None
 
 
-def _combine_seven_day(url_list, response_json, data_df):
+def _combine_seven_day(url, response_json, data_df):
     data = json_normalize(response_json)
 
-    data["lat"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url_list[0])[
-        0
-    ][0]
-    data["long"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url_list[0])[
-        0
-    ][1]
-    url_list.pop(0)
+    data["lat"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url)[0][0]
+    data["long"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url)[0][1]
 
-    return pd.concat([data_df, data], axis=0), url_list
+    return pd.concat([data_df, data], axis=0)
 
 
 def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df):
@@ -273,7 +268,7 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
                 params=create_params(weather_type, time_interval),
                 raise_for_status=True,
             ) as response:
-                return await response.read(), weather_variable
+                return await response.read(), weather_variable, url
         except aiohttp.ClientError:
             await asyncio.sleep(1)
             num_retries += 1
@@ -329,13 +324,11 @@ async def run_queries(
             )
 
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            response, weather_variable = await f
+            response, weather_variable, url = await f
             try:
                 response_json = json.loads(response)
                 if weather_type == WeatherType.SevenDay:
-                    data_df, url_list = _combine_seven_day(
-                        url_list, response_json, data_df
-                    )
+                    data_df = _combine_seven_day(url, response_json, data_df)
                 else:
                     data_df = _merge_to_full_df(
                         weather_variable, weather_interval, response_json, data_df
