@@ -37,9 +37,9 @@ def get_all_fields(token):
 
 def get_weather(
     weather_type,
-    weather_variables,
-    weather_interval,
     location_list,
+    weather_variables=None,
+    weather_interval=None,
     time_interval=None,
     dtn_key=None,
 ):
