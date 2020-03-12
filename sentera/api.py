@@ -67,6 +67,9 @@ def get_weather(
         time_interval, weather_type, weather_interval
     )
 
+    if not weather_variables:
+        weather_variables = [None]
+
     for time_interval in time_intervals:
         for field_location in location_list:
             for weather_variable in weather_variables:
