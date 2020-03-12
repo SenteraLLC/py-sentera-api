@@ -37,9 +37,9 @@ def get_all_fields(token):
 
 def get_weather(
     weather_type,
-    weather_variables,
-    weather_interval,
     location_list,
+    weather_variables=None,
+    weather_interval=None,
     time_interval=None,
     dtn_key=None,
 ):
@@ -66,6 +66,9 @@ def get_weather(
     time_intervals = weather.split_time_interval(
         time_interval, weather_type, weather_interval
     )
+
+    if not weather_variables:
+        weather_variables = [None]
 
     for time_interval in time_intervals:
         for field_location in location_list:

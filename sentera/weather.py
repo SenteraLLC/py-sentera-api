@@ -11,6 +11,7 @@ import asyncio
 import datetime
 import json
 import posixpath
+import re
 from enum import Enum
 
 import aiohttp
@@ -27,6 +28,7 @@ class WeatherType(Enum):
 
     Recent = "recent"
     Historical = "historical"
+    SevenDay = "seven-day-forecast"
     # Forecast = "forecast"
     # Current = "current"
 
@@ -49,6 +51,7 @@ class WeatherVariable(Enum):
     LowTemperature = "low-temperature"
     Precipitation = "precipitation"
     WindSpeed = "wind-speed"
+    Undefined = "undefined"
 
     def __str__(self):
         """Return the value of the WeatherVariable Enum as a string."""
@@ -59,12 +62,17 @@ class WeatherVariable(Enum):
         """Class method to return chosen WeatherVariable value."""
         return value in cls._value2member_map_
 
+    @classmethod
+    def _missing_(cls, value):
+        return WeatherVariable.Undefined
+
 
 class WeatherInterval(Enum):
     """Enumerable holding the possible weather intervals that can be queried against by the Sentera Weather API."""
 
     Hourly = "hourly"
     Daily = "daily"
+    Undefined = "undefined"
 
     def __str__(self):
         """Return the value of the WeatherInterval Enum as a string."""
@@ -74,6 +82,10 @@ class WeatherInterval(Enum):
     def has_value(cls, value):
         """Class method to return chosen WeatherInterval value."""
         return value in cls._value2member_map_
+
+    @classmethod
+    def _missing_(cls, value):
+        return WeatherInterval.Undefined
 
 
 TIME_COLUMNS = {WeatherInterval.Hourly: "validTime", WeatherInterval.Daily: "validDate"}
@@ -111,24 +123,28 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
     :param long: Longitude coordinate at which to query weather at.
     :return: Constructed query URL, as string.
     """
-    try:
-        if (
-            weather_variable
-            not in PARAMETER_COMBINATIONS[weather_type][weather_interval]
-        ):
-            raise KeyError
-    except KeyError:
-        raise ValueError(
-            f"Parameter combination not allowed: {weather_type}, {weather_variable}, {weather_interval}"
-        )
+    if weather_type == WeatherType.SevenDay:
+        return posixpath.join(WEATHER_BASE_URL, str(weather_type), str(lat), str(long),)
 
-    return posixpath.join(
-        WEATHER_BASE_URL,
-        str(weather_type),
-        f"{weather_interval}-{weather_variable}",
-        str(lat),
-        str(long),
-    )
+    else:
+        try:
+            if (
+                weather_variable
+                not in PARAMETER_COMBINATIONS[weather_type][weather_interval]
+            ):
+                raise KeyError
+        except KeyError:
+            raise ValueError(
+                f"Parameter combination not allowed: {weather_type}, {weather_variable}, {weather_interval}"
+            )
+
+        return posixpath.join(
+            WEATHER_BASE_URL,
+            str(weather_type),
+            f"{weather_interval}-{weather_variable}",
+            str(lat),
+            str(long),
+        )
 
 
 def create_params(weather_type, time_interval):
@@ -204,7 +220,43 @@ def split_time_interval(time_interval, weather_type, weather_interval):
     elif weather_type == WeatherType.Historical:
         return [["01-01", "07-01"], ["07-01", "12-31"]]
 
+    elif weather_type == WeatherType.SevenDay:
+        return [["", ""]]
+
     return None
+
+
+def _combine_seven_day(url, response_json, data_df):
+    data = json_normalize(response_json)
+
+    data["lat"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url)[0][0]
+    data["long"] = re.findall(r"\D+/(-?[0-9]+.[0-9]+)/(-?[0-9]+.[0-9]+)", url)[0][1]
+
+    return pd.concat([data_df, data], axis=0)
+
+
+def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df):
+    data = json_normalize(response_json["series"])
+    data = data.rename(columns={"value": str(weather_variable)}).drop(
+        columns=["products"]
+    )
+    data["lat"] = response_json["latitude"]
+    data["long"] = response_json["longitude"]
+
+    data_df = data_df.merge(
+        data,
+        on=[TIME_COLUMNS[weather_interval], "lat", "long"],
+        how="outer",
+        suffixes=["", "_"],
+    )
+    if str(weather_variable) + "_" in data_df:
+        indx = data_df[str(weather_variable) + "_"].notnull()
+        data_df.loc[indx, str(weather_variable)] = data_df.loc[
+            indx, str(weather_variable) + "_"
+        ]
+        data_df.drop(str(weather_variable) + "_", inplace=True, axis=1)
+
+    return data_df
 
 
 async def _fetch(url, session, weather_variable, time_interval, weather_type):
@@ -216,7 +268,7 @@ async def _fetch(url, session, weather_variable, time_interval, weather_type):
                 params=create_params(weather_type, time_interval),
                 raise_for_status=True,
             ) as response:
-                return await response.read(), weather_variable
+                return await response.read(), weather_variable, url
         except aiohttp.ClientError:
             await asyncio.sleep(1)
             num_retries += 1
@@ -264,30 +316,23 @@ async def run_queries(
             )
             tasks.append(task)
 
-        data_df = pd.DataFrame(columns=[TIME_COLUMNS[weather_interval], "lat", "long"])
+        if weather_type == WeatherType.SevenDay:
+            data_df = pd.DataFrame()
+        else:
+            data_df = pd.DataFrame(
+                columns=[TIME_COLUMNS[weather_interval], "lat", "long"]
+            )
+
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            response, weather_variable = await f
+            response, weather_variable, url = await f
             try:
                 response_json = json.loads(response)
-                data = json_normalize(response_json["series"])
-                data = data.rename(columns={"value": str(weather_variable)}).drop(
-                    columns=["products"]
-                )
-                data["lat"] = response_json["latitude"]
-                data["long"] = response_json["longitude"]
-
-                data_df = data_df.merge(
-                    data,
-                    on=[TIME_COLUMNS[weather_interval], "lat", "long"],
-                    how="outer",
-                    suffixes=["", "_"],
-                )
-                if str(weather_variable) + "_" in data_df:
-                    indx = data_df[str(weather_variable) + "_"].notnull()
-                    data_df.loc[indx, str(weather_variable)] = data_df.loc[
-                        indx, str(weather_variable) + "_"
-                    ]
-                    data_df.drop(str(weather_variable) + "_", inplace=True, axis=1)
+                if weather_type == WeatherType.SevenDay:
+                    data_df = _combine_seven_day(url, response_json, data_df)
+                else:
+                    data_df = _merge_to_full_df(
+                        weather_variable, weather_interval, response_json, data_df
+                    )
             except Exception as e:
                 print(response)
                 raise e

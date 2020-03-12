@@ -15,7 +15,3 @@ dependencies:
   - aiohttp
   - tqdm
   # subpackage dependencies
-  # private dependencies
-  # - pip
-  # - pip:
-  #   - git+ssh://git@github.com/SenteraLLC/py-utils@v2.2.0
