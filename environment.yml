@@ -9,6 +9,8 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - m2r
+  - pip
+  - pipenv
   # main dependencies
   - requests
   - pandas
