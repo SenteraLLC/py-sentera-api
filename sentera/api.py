@@ -98,30 +98,6 @@ def get_weather(
     )
     return weather_df
 
-
-def make_alert(query, url, variables, headers):
-    """
-        Make the alert mutation to https://api.sentera.com.
-
-    :param query: the specific graphql mutation string
-    :param url: the designated location for the alert mutation
-    :param variables: content to be inserted in the alert
-    :param headers: authorization token
-    :return: nothing
-    """
-    request = requests.post(
-        url, json={"query": query, "variables": variables}, headers=headers
-    )
-    if request.status_code == 200:
-        return request.json()
-    else:
-        raise Exception(
-            "Alert was not sent and returned a code of {}. {}".format(
-                request.status_code, query
-            )
-        )
-
-
 def create_alert(field_sentera_id, name, message, token):
     """
     Create alert content and post alert mutation to https://api.sentera.com/graphql.
