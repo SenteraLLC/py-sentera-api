@@ -2,7 +2,7 @@
 import asyncio
 
 import requests
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 
 from sentera import weather
 
@@ -98,17 +98,40 @@ def get_weather(
     )
     return weather_df
 
+
+def make_alert(query, url, variables, headers):
+    """
+        Make the alert mutation to https://api.sentera.com.
+
+    :param query: the specific graphql mutation string
+    :param url: the designated location for the alert mutation
+    :param variables: content to be inserted in the alert
+    :param headers: authorization token
+    :return: nothing
+    """
+    request = requests.post(
+        url, json={"query": query, "variables": variables}, headers=headers
+    )
+    if request.status_code == 200:
+        return request.json()
+    else:
+        raise Exception(
+            "Alert was not sent and returned a code of {}. {}".format(
+                request.status_code, query
+            )
+        )
+
+
 def create_alert(field_sentera_id, name, message, token):
     """
-    Create the content for an alert to be sent out to a specific field within the Sentera graphql api.
+    Create alert content and post alert mutation to https://api.sentera.com/graphql.
 
-    :param field_sentera_id: a field sentera id (string)
-    :param name: name for the alert (string)
-    :param message: a brief message describing the alert in more detail (string)
-    :param token: an authorization token to post the alert mutation to the designated field (string)
-    :return: necessary inputs for making the alert.
+    :param field_sentera_id: A field id (string)
+    :param name: name of the alert (string)
+    :param message: brief description of the alert being made (string)
+    :param token: an authorization token needed to post the alert to the specified field (string)
+    :return: result of the request.post
     """
-
     query = """mutation CreateAlert ($field_sentera_id: ID!, $name: String!, $message: String!) {
     create_alert (
     field_sentera_id: $field_sentera_id
@@ -131,29 +154,6 @@ def create_alert(field_sentera_id, name, message, token):
     variables = {"field_sentera_id": field_sentera_id, "name": name, "message": message}
     url = "https://apidev.sentera.com/graphql"
     headers = {"Authorization": token}
-    return query, variables, url, headers
+    result = make_alert(query, url, variables, headers)
 
-# Note until this functionality is tested the alert functionality will be pushed to apidev
-# instead of the production site.
-def make_alert(query, url, variables, headers):
-    """
-        Make the alert mutation to https://apidev.sentera.com.
-
-    :param query: the specific graphql mutation string
-    :param url: the designated location for the alert mutation
-    :param variables: content to be inserted in the alert
-    :param headers: authorization token
-    :return: nothing
-    """
-    request = requests.post(
-        url, json={"query": query, "variables": variables}, headers=headers
-    )
-    if request.status_code == 200:
-        return request.json()
-    else:
-        raise Exception(
-            "Alert was not sent and returned a code of {}. {}".format(
-                request.status_code, query
-            )
-        )
-
+    return result
