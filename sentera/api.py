@@ -98,6 +98,7 @@ def get_weather(
     )
     return weather_df
 
+
 def create_alert(field_sentera_id, name, message, token):
     """
     Create alert content and post alert mutation to https://api.sentera.com/graphql.
