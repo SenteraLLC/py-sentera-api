@@ -97,3 +97,63 @@ def get_weather(
         )
     )
     return weather_df
+
+def create_alert(field_sentera_id, name, message, token):
+    """
+    Create the content for an alert to be sent out to a specific field within the Sentera graphql api.
+
+    :param field_sentera_id: a field sentera id (string)
+    :param name: name for the alert (string)
+    :param message: a brief message describing the alert in more detail (string)
+    :param token: an authorization token to post the alert mutation to the designated field (string)
+    :return: necessary inputs for making the alert.
+    """
+
+    query = """mutation CreateAlert ($field_sentera_id: ID!, $name: String!, $message: String!) {
+    create_alert (
+    field_sentera_id: $field_sentera_id
+    name: $name
+    message: $message
+    )
+    {
+    sentera_id
+    name
+    message
+    created_by {
+        sentera_id
+        first_name
+        last_name
+        email
+        }
+        created_at
+    }
+}"""
+    variables = {"field_sentera_id": field_sentera_id, "name": name, "message": message}
+    url = "https://apidev.sentera.com/graphql"
+    headers = {"Authorization": token}
+    return query, variables, url, headers
+
+# Note until this functionality is tested the alert functionality will be pushed to apidev
+# instead of the production site.
+def make_alert(query, url, variables, headers):
+    """
+        Make the alert mutation to https://apidev.sentera.com.
+
+    :param query: the specific graphql mutation string
+    :param url: the designated location for the alert mutation
+    :param variables: content to be inserted in the alert
+    :param headers: authorization token
+    :return: nothing
+    """
+    request = requests.post(
+        url, json={"query": query, "variables": variables}, headers=headers
+    )
+    if request.status_code == 200:
+        return request.json()
+    else:
+        raise Exception(
+            "Alert was not sent and returned a code of {}. {}".format(
+                request.status_code, query
+            )
+        )
+
