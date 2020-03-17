@@ -153,7 +153,7 @@ def create_alert(field_sentera_id, name, message, token):
 }"""
     variables = {"field_sentera_id": field_sentera_id, "name": name, "message": message}
     url = "https://apidev.sentera.com/graphql"
-    headers = {"Authorization": token}
-    result = make_alert(query, url, variables, headers)
+    data = {"query": query, "variables": variables}
+    result = _run_sentera_query(data, token)
 
     return result
