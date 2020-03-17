@@ -2,7 +2,7 @@
 import asyncio
 
 import requests
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 
 from sentera import weather
 
@@ -97,3 +97,39 @@ def get_weather(
         )
     )
     return weather_df
+
+
+def create_alert(field_sentera_id, name, message, token):
+    """
+    Create alert content and post alert mutation to https://api.sentera.com/graphql.
+
+    :param field_sentera_id: A field id (string)
+    :param name: name of the alert (string)
+    :param message: brief description of the alert being made (string)
+    :param token: an authorization token needed to post the alert to the specified field (string)
+    :return: result of the request.post
+    """
+    query = """mutation CreateAlert ($field_sentera_id: ID!, $name: String!, $message: String!) {
+    create_alert (
+    field_sentera_id: $field_sentera_id
+    name: $name
+    message: $message
+    )
+    {
+    sentera_id
+    name
+    message
+    created_by {
+        sentera_id
+        first_name
+        last_name
+        email
+        }
+        created_at
+    }
+}"""
+    variables = {"field_sentera_id": field_sentera_id, "name": name, "message": message}
+    data = {"query": query, "variables": variables}
+    result = _run_sentera_query(data, token)
+
+    return result
