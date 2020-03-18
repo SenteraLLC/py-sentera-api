@@ -1,7 +1,7 @@
 """Functions to generate authorization credentials for use of the Sentera Weather API."""
 import requests
 
-from sentera import configuration
+from sentera.configuration import Configuration
 
 
 def get_auth_token(email, password):
@@ -22,7 +22,7 @@ def get_auth_token(email, password):
         }
     }
 
-    request = requests.post(configuration.sentera_api_url("/v1/sessions"), json=query)
+    request = requests.post(Configuration().sentera_api_url("/v1/sessions"), json=query)
     if request.status_code != 200:
         raise Exception(
             "Query failed to run by returning code of {}. {}".format(
@@ -45,7 +45,7 @@ def get_application_token(client_id, client_secret):
     """
     data = {"grant_type": "client_credentials"}
     response = requests.post(
-        configuration.sentera_api_url("/oauth/token"),
+        Configuration().sentera_api_url("/oauth/token"),
         data=data,
         allow_redirects=False,
         auth=(client_id, client_secret),

@@ -12,31 +12,46 @@ except ImportError:
     import importlib_resources as pkg_resources
 
 
-environment = os.environ.get("SENTERA_ENV") or "production"
-environment = environment.lower()
+class Configuration:
+    """Class toretrieve configurations from."""
 
-config_parser = configparser.ConfigParser()
-config_str = pkg_resources.read_text(sentera, "configuration.ini")
-config_parser.read_string(config_str)
+    def __init__(self, environment=None):
+        """
+        Initialize a configuration object. You can optionally pass in the environment.
 
-config = config_parser[environment]
+        Order precedence for environment:
+          environment argument
+          SENTERA_ENV environment variable
+          defaulting to production
 
+        :param environment: (optional) The environment you want configuations for.
+        :retun: **Configuration instance** - A configuration object for a given environment.
+        """
+        if environment is None:
+            environment = os.environ.get("SENTERA_ENV") or "production"
+            environment = environment.lower()
+        self.environment = environment
 
-def sentera_api_url(path):
-    """
-    Return a url to the Sentera API for the path supplied.
+        config_parser = configparser.ConfigParser()
+        config_str = pkg_resources.read_text(sentera, "configuration.ini")
+        config_parser.read_string(config_str)
 
-    :param path: The path to the weather service endpoint you would like to use.
-    :return: **url** - A url to the weather service with the path you provided.
-    """
-    return "{}{}".format(config["sentera_api_url"], path)
+        self.config = config_parser[environment]
 
+    def sentera_api_url(self, path):
+        """
+        Return a url to the Sentera API for the path supplied.
 
-def weather_api_url(path):
-    """
-    Return a url to the weather service for the path supplied.
+        :param path: The path to the weather service endpoint you would like to use.
+        :return: **url** - A url to the weather service with the path you provided.
+        """
+        return "{}{}".format(self.config["sentera_api_url"], path)
 
-    :param path: The path to the weather service endpoint you would like to use.
-    :return: **url** - A url to the weather service with the path you provided.
-    """
-    return "{}{}".format(config["weather_api_url"], path)
+    def weather_api_url(self, path):
+        """
+        Return a url to the weather service for the path supplied.
+
+        :param path: The path to the weather service endpoint you would like to use.
+        :return: **url** - A url to the weather service with the path you provided.
+        """
+        return "{}{}".format(self.config["weather_api_url"], path)
