@@ -1,4 +1,4 @@
-# <Title_Here>
+# Title
 ## What?
 ## Why?
 - [ ] Merged latest master
