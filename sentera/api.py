@@ -8,7 +8,7 @@ from sentera import configuration, weather
 
 
 def _run_sentera_query(query, token):
-    url = configuration.sentera_api_url('/graphql')
+    url = configuration.sentera_api_url("/graphql")
     headers = {"Authorization": token}
     request = requests.post(url=url, json=query, headers=headers)
     if request.status_code != 200:
