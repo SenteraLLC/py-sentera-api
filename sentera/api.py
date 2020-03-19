@@ -4,17 +4,20 @@ import asyncio
 import requests
 from pandas import json_normalize
 
-from sentera import configuration, weather
+from sentera import weather
+from sentera.configuration import Configuration
 
 
 def _run_sentera_query(query, token):
-    url = configuration.sentera_api_url("/graphql")
+    url = Configuration().sentera_api_url("/graphql")
     headers = {"Authorization": token}
-    request = requests.post(url=url, json=query, headers=headers)
-    if request.status_code != 200:
-        raise Exception("Request Failed {}. {}".format(request.status_code, query))
+    response = requests.post(url=url, json=query, headers=headers)
+    if response.status_code != 200:
+        raise Exception(
+            "Request Failed {}. {}".format(response.status_code, response.text)
+        )
 
-    return request.json()
+    return response.json()
 
 
 def get_all_fields(token):

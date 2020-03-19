@@ -18,7 +18,7 @@ import pandas as pd
 import tqdm
 from pandas.io.json import json_normalize
 
-from sentera import configuration
+from sentera.configuration import Configuration
 
 WEATHER_BASE_URL = "https://weather.sentera.com"
 WEATHER_HEADER = {"X-API-Key": "mc049Cu9FJ3lHiQYDYQTd3ZOzsOBt29d2gyi3e0r"}
@@ -125,7 +125,7 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
     :return: Constructed query URL, as string.
     """
     if weather_type == WeatherType.SevenDay:
-        return configuration.weather_api_url(
+        return Configuration().weather_api_url(
             "/{}/{}/{}".format(str(weather_type), str(lat), str(long))
         )
 
@@ -141,7 +141,7 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
                 f"Parameter combination not allowed: {weather_type}, {weather_variable}, {weather_interval}"
             )
 
-        return configuration.weather_api_url(
+        return Configuration().weather_api_url(
             "/{}/{}-{}/{}/{}".format(
                 str(weather_type),
                 weather_interval,
