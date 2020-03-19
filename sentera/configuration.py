@@ -1,4 +1,4 @@
-"""Evnironment specific configurations."""
+"""Environment specific configurations."""
 
 import configparser
 import os
