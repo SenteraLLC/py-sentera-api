@@ -10,6 +10,9 @@ pre-commit = "*"
 
 [packages]
 requests = "*"
+pandas = "*"
+aiohttp = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"
