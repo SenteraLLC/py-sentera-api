@@ -13,7 +13,7 @@ except ImportError:
 
 
 class Configuration:
-    """Class toretrieve configurations from."""
+    """Class to retrieve configurations from."""
 
     def __init__(self, environment=None):
         """
