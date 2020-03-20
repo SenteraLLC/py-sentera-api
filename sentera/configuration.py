@@ -1,15 +1,30 @@
 """Environment specific configurations."""
 
-import configparser
 import os
 
-import sentera
-
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
+ENVIRONMENT_CONFIGS = {
+    "development": {
+        "sentera_api_url": "https://apidev.sentera.com",
+        "weather_api_url": "https://weatherdev.sentera.com",
+    },
+    "production": {
+        "sentera_api_url": "https://api.sentera.com",
+        "weather_api_url": "https://weather.sentera.com",
+    },
+    "staging": {
+        "sentera_api_url": "https://apistaging.sentera.com",
+        "weather_api_url": "https://weatherstaging.sentera.com",
+    },
+    "staging2": {
+        "sentera_api_url": "https://apistaging2.sentera.com",
+        "weather_api_url": "https://weatherstaging2.sentera.com",
+    },
+    "test": {
+        # This environment is intended to be used by tests and is not a real environment.
+        "sentera_api_url": "https://apitest.sentera.com",
+        "weather_api_url": "https://weathertest.sentera.com",
+    },
+}
 
 
 class Configuration:
@@ -32,11 +47,7 @@ class Configuration:
             environment = environment.lower()
         self.environment = environment
 
-        config_parser = configparser.ConfigParser()
-        config_str = pkg_resources.read_text(sentera, "configuration.ini")
-        config_parser.read_string(config_str)
-
-        self.config = config_parser[environment]
+        self.config = ENVIRONMENT_CONFIGS[environment]
 
     def sentera_api_url(self, path):
         """
