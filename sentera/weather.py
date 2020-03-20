@@ -10,7 +10,6 @@ asynchronous manner by the ``sentera.api`` module.
 import asyncio
 import datetime
 import json
-import posixpath
 import re
 from enum import Enum
 
@@ -18,6 +17,8 @@ import aiohttp
 import pandas as pd
 import tqdm
 from pandas.io.json import json_normalize
+
+from sentera.configuration import Configuration
 
 WEATHER_BASE_URL = "https://weather.sentera.com"
 WEATHER_HEADER = {"X-API-Key": "mc049Cu9FJ3lHiQYDYQTd3ZOzsOBt29d2gyi3e0r"}
@@ -124,7 +125,9 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
     :return: Constructed query URL, as string.
     """
     if weather_type == WeatherType.SevenDay:
-        return posixpath.join(WEATHER_BASE_URL, str(weather_type), str(lat), str(long),)
+        return Configuration().weather_api_url(
+            "/{}/{}/{}".format(str(weather_type), str(lat), str(long))
+        )
 
     else:
         try:
@@ -138,12 +141,14 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
                 f"Parameter combination not allowed: {weather_type}, {weather_variable}, {weather_interval}"
             )
 
-        return posixpath.join(
-            WEATHER_BASE_URL,
-            str(weather_type),
-            f"{weather_interval}-{weather_variable}",
-            str(lat),
-            str(long),
+        return Configuration().weather_api_url(
+            "/{}/{}-{}/{}/{}".format(
+                str(weather_type),
+                weather_interval,
+                weather_variable,
+                str(lat),
+                str(long),
+            )
         )
 
 
@@ -284,7 +289,7 @@ async def run_queries(
     time_interval_list,
     weather_interval,
     weather_type,
-    dtn_key=None,
+    sentera_api_key=None,
 ):
     """
     Make a series of asynchronous requests to the Weather API.
@@ -299,13 +304,13 @@ async def run_queries(
     :param time_interval_list: List of time intervals for each request
     :param weather_interval: List of weather intervals, as instances of the ``sentera.weather.WeatherInterval`` Enum
     :param weather_type: List of weather types, as instances of the ``sentera.weather.WeatherType`` Enum
-    :param dtn_key: (optional) A DTN key giving access to the data. Has a default hard coded value that works.
+    :param sentera_api_key: (optional) A Sentera key giving access to the data. Has a default hard coded value that works.
     :return: data_df: Pandas DataFrame of request results
     """
     tasks = []
 
-    if dtn_key:
-        WEATHER_HEADER["X-API-Key"] = dtn_key
+    if sentera_api_key:
+        WEATHER_HEADER["X-API-Key"] = sentera_api_key
 
     async with aiohttp.ClientSession(headers=WEATHER_HEADER) as session:
         for url, weather_variable, time_interval in zip(
