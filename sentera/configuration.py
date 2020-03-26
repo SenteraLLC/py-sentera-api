@@ -3,11 +3,11 @@
 import os
 
 ENVIRONMENT_CONFIGS = {
-    "development": {
+    "dev": {
         "sentera_api_url": "https://apidev.sentera.com",
         "weather_api_url": "https://weatherdev.sentera.com",
     },
-    "production": {
+    "prod": {
         "sentera_api_url": "https://api.sentera.com",
         "weather_api_url": "https://weather.sentera.com",
     },
@@ -37,13 +37,13 @@ class Configuration:
         Order precedence for environment:
           environment argument
           SENTERA_ENV environment variable
-          defaulting to production
+          defaulting to prod
 
         :param environment: (optional) The environment you want configuations for.
         :retun: **Configuration instance** - A configuration object for a given environment.
         """
         if environment is None:
-            environment = os.environ.get("SENTERA_ENV") or "production"
+            environment = os.environ.get("SENTERA_ENV") or "prod"
             environment = environment.lower()
         self.environment = environment
 
