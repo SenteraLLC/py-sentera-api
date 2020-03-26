@@ -109,6 +109,7 @@ def create_alert(field_sentera_id, name, message, token, key=None):
     :param name: name of the alert (string)
     :param message: brief description of the alert being made (string)
     :param token: an authorization token needed to post the alert to the specified field (string)
+    :param key: (optional) A client-defined key to help identify the alert.
     :return: result of the request.post
     """
     query = """mutation CreateAlert ($field_sentera_id: ID!, $name: String!, $message: String!, $key: String) {
