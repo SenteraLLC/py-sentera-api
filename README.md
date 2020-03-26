@@ -21,11 +21,10 @@ Else to get started with examples right away, simply follow the *Examples* instr
 
 ### Documentation
 
-This library is documented using Sphinx. To generate documentation, within the top level of
-the repo, run
+This library is documented using Sphinx. To generate documentation, make sure all **dev** 
+dependencies are installed (e.g. you've installed via ``pip install -e .[dev]``).  Within
+the *docs/* subdirectory, run:
 
-    sphinx-apidoc -o docs/_modules -M <pkg_name>
-    cd docs
     make html
 
 The documentation will be generated as an html file located at *py-sentera-api/docs/\_build/html/index.html*. 
