@@ -6,7 +6,10 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 httpretty = "*"
-pre-commit = "*"
+pre_commit = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+m2r = "*"
 
 [packages]
 requests = "*"
