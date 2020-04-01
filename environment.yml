@@ -14,7 +14,7 @@ dependencies:
   - httpretty
   # main dependencies
   - requests
-  - retrying
+  - tenacity
   - pandas
   - aiohttp
   - tqdm

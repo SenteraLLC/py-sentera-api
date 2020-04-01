@@ -19,7 +19,7 @@ import aiohttp
 import pandas as pd
 import tqdm
 from pandas.io.json import json_normalize
-from retrying import retry
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random
 
 from sentera.configuration import Configuration
 
@@ -267,14 +267,10 @@ def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df
     return data_df
 
 
-def _retry_if_aio_client_error(exception):
-    return isinstance(exception, aiohttp.ClientError)
-
-
 @retry(
-    retry_on_exception=_retry_if_aio_client_error,
-    stop_max_attempt_number=5,
-    wait_fixed=500,
+    retry=retry_if_exception_type(aiohttp.ClientError),
+    wait=wait_random(min=0.25, max=0.75),
+    stop=stop_after_attempt(5),
 )
 async def _fetch(url, session, weather_variable, time_interval, weather_type):
     async with session.get(
@@ -333,16 +329,12 @@ async def run_queries(
             asyncio.as_completed(tasks), total=len(tasks), disable=disable_tqdm
         ):
             response, weather_variable, url = await f
-            try:
-                response_json = json.loads(response)
-                if weather_type == WeatherType.SevenDay:
-                    data_df = _combine_seven_day(url, response_json, data_df)
-                else:
-                    data_df = _merge_to_full_df(
-                        weather_variable, weather_interval, response_json, data_df
-                    )
-            except Exception as e:
-                print(response)
-                raise e
+            response_json = json.loads(response)
+            if weather_type == WeatherType.SevenDay:
+                data_df = _combine_seven_day(url, response_json, data_df)
+            else:
+                data_df = _merge_to_full_df(
+                    weather_variable, weather_interval, response_json, data_df
+                )
 
     return data_df

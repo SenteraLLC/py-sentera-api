@@ -2,8 +2,9 @@ import json
 
 import httpretty
 import pytest
+import tenacity
 
-from ..api import create_alert
+from ..api import create_alert, get_weather
 
 
 @httpretty.httprettified
@@ -81,3 +82,14 @@ def test_create_alert_without_key_success():
     )
     assert response["data"]["create_alert"]["key"] is None
     assert len(httpretty.latest_requests()) == 1
+
+
+def test_get_weather():
+    with pytest.raises(tenacity.RetryError) as retry_error:
+        get_weather(
+            "recent",
+            [[10, -90]],
+            ["high-temperature"],
+            "daily",
+            ["2020/01/01", "2020/01/03"],
+        )

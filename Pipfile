@@ -16,7 +16,7 @@ requests = "*"
 pandas = "*"
 aiohttp = "*"
 tqdm = "*"
-retrying = "*"
+tenacity = "*"
 
 [requires]
 python_version = "3.7"
