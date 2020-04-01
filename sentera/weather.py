@@ -12,6 +12,7 @@ import datetime
 import json
 import os
 import re
+from distutils.util import strtobool
 from enum import Enum
 
 import aiohttp
@@ -327,7 +328,7 @@ async def run_queries(
                 columns=[TIME_COLUMNS[weather_interval], "lat", "long"]
             )
 
-        disable_tqdm = os.environ.get("DISABLE_TDQM") or False
+        disable_tqdm = strtobool(os.environ.get("DISABLE_TDQM") or "false")
         for f in tqdm.tqdm(
             asyncio.as_completed(tasks), total=len(tasks), disable=disable_tqdm
         ):
