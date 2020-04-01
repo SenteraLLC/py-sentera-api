@@ -328,7 +328,7 @@ async def run_queries(
                 columns=[TIME_COLUMNS[weather_interval], "lat", "long"]
             )
 
-        disable_tqdm = strtobool(os.environ.get("DISABLE_TDQM") or "false")
+        disable_tqdm = strtobool(os.environ.get("DISABLE_TQDM") or "false")
         for f in tqdm.tqdm(
             asyncio.as_completed(tasks), total=len(tasks), disable=disable_tqdm
         ):
