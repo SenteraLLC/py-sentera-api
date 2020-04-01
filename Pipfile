@@ -16,6 +16,7 @@ requests = "*"
 pandas = "*"
 aiohttp = "*"
 tqdm = "*"
+retrying = "*"
 
 [requires]
 python_version = "3.7"

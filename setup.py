@@ -23,7 +23,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    install_requires=["requests", "aiohttp", "pandas", "tqdm"],
+    install_requires=["requests", "aiohttp", "pandas", "retrying", "tqdm"],
     extras_require={
         "dev": ["pytest", "sphinx_rtd_theme", "pre_commit", "m2r", "sphinx"]
     },
