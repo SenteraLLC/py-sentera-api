@@ -10,6 +10,7 @@ asynchronous manner by the ``sentera.api`` module.
 import asyncio
 import datetime
 import json
+import os
 import re
 from enum import Enum
 
@@ -328,7 +329,10 @@ async def run_queries(
                 columns=[TIME_COLUMNS[weather_interval], "lat", "long"]
             )
 
-        for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
+        disable_tqdm = os.environ.get("DISABLE_TDQM") or False
+        for f in tqdm.tqdm(
+            asyncio.as_completed(tasks), total=len(tasks), disable=disable_tqdm
+        ):
             response, weather_variable, url = await f
             try:
                 response_json = json.loads(response)
