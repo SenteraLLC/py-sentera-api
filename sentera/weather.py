@@ -10,14 +10,18 @@ asynchronous manner by the ``sentera.api`` module.
 import asyncio
 import datetime
 import json
-import posixpath
+import os
 import re
+from distutils.util import strtobool
 from enum import Enum
 
 import aiohttp
 import pandas as pd
 import tqdm
 from pandas.io.json import json_normalize
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random
+
+from sentera.configuration import Configuration
 
 WEATHER_BASE_URL = "https://weather.sentera.com"
 WEATHER_HEADER = {"X-API-Key": "mc049Cu9FJ3lHiQYDYQTd3ZOzsOBt29d2gyi3e0r"}
@@ -94,6 +98,7 @@ PARAMETER_COMBINATIONS = {
         WeatherInterval.Hourly: [
             WeatherVariable.Temperature,
             WeatherVariable.Humidity,
+            WeatherVariable.Precipitation,
             WeatherVariable.WindSpeed,
         ],
         WeatherInterval.Daily: [
@@ -124,7 +129,9 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
     :return: Constructed query URL, as string.
     """
     if weather_type == WeatherType.SevenDay:
-        return posixpath.join(WEATHER_BASE_URL, str(weather_type), str(lat), str(long),)
+        return Configuration().weather_api_url(
+            "/{}/{}/{}".format(str(weather_type), str(lat), str(long))
+        )
 
     else:
         try:
@@ -138,12 +145,14 @@ def build_weather_url(weather_type, weather_variable, weather_interval, lat, lon
                 f"Parameter combination not allowed: {weather_type}, {weather_variable}, {weather_interval}"
             )
 
-        return posixpath.join(
-            WEATHER_BASE_URL,
-            str(weather_type),
-            f"{weather_interval}-{weather_variable}",
-            str(lat),
-            str(long),
+        return Configuration().weather_api_url(
+            "/{}/{}-{}/{}/{}".format(
+                str(weather_type),
+                weather_interval,
+                weather_variable,
+                str(lat),
+                str(long),
+            )
         )
 
 
@@ -217,8 +226,23 @@ def split_time_interval(time_interval, weather_type, weather_interval):
 
         return time_intervals
 
-    elif weather_type == WeatherType.Historical:
-        return [["01-01", "07-01"], ["07-01", "12-31"]]
+    if weather_type == WeatherType.Historical:
+        if not time_interval:
+            raise ValueError("Time interval needed for historical weather types")
+        try:
+            start = datetime.datetime.strptime(time_interval[0], "%m/%d")
+        except ValueError:
+            raise ValueError("Incorrect time interval format, should be MM/DD")
+
+        try:
+            end = datetime.datetime.strptime(time_interval[1], "%m/%d")
+        except ValueError:
+            raise ValueError("Incorrect time interval format, shoule be MM/DD")
+        diff = (end-start).days
+        if diff >=0:
+            return[[time_interval[0],time_interval[1]]]
+        else:
+            return [[time_interval[0], "12-31"], ["01-01", time_interval[1]]]
 
     elif weather_type == WeatherType.SevenDay:
         return [["", ""]]
@@ -259,23 +283,16 @@ def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df
     return data_df
 
 
+@retry(
+    retry=retry_if_exception_type(aiohttp.ClientError),
+    wait=wait_random(min=0.25, max=0.75),
+    stop=stop_after_attempt(5),
+)
 async def _fetch(url, session, weather_variable, time_interval, weather_type):
-    num_retries = 0
-    while num_retries < 5:
-        try:
-            async with session.get(
-                url,
-                params=create_params(weather_type, time_interval),
-                raise_for_status=True,
-            ) as response:
-                return await response.read(), weather_variable, url
-        except aiohttp.ClientError:
-            await asyncio.sleep(1)
-            num_retries += 1
-
-    raise aiohttp.ClientError(
-        f"Couldn't access data from {url} from {time_interval[0]} to {time_interval[1]}"
-    )
+    async with session.get(
+        url, params=create_params(weather_type, time_interval), raise_for_status=True,
+    ) as response:
+        return await response.read(), weather_variable, url
 
 
 async def run_queries(
@@ -284,7 +301,7 @@ async def run_queries(
     time_interval_list,
     weather_interval,
     weather_type,
-    dtn_key=None,
+    sentera_api_key=None,
 ):
     """
     Make a series of asynchronous requests to the Weather API.
@@ -299,13 +316,13 @@ async def run_queries(
     :param time_interval_list: List of time intervals for each request
     :param weather_interval: List of weather intervals, as instances of the ``sentera.weather.WeatherInterval`` Enum
     :param weather_type: List of weather types, as instances of the ``sentera.weather.WeatherType`` Enum
-    :param dtn_key: (optional) A DTN key giving access to the data. Has a default hard coded value that works.
+    :param sentera_api_key: (optional) A Sentera key giving access to the data. Has a default hard coded value that works.
     :return: data_df: Pandas DataFrame of request results
     """
     tasks = []
 
-    if dtn_key:
-        WEATHER_HEADER["X-API-Key"] = dtn_key
+    if sentera_api_key:
+        WEATHER_HEADER["X-API-Key"] = sentera_api_key
 
     async with aiohttp.ClientSession(headers=WEATHER_HEADER) as session:
         for url, weather_variable, time_interval in zip(
@@ -323,18 +340,17 @@ async def run_queries(
                 columns=[TIME_COLUMNS[weather_interval], "lat", "long"]
             )
 
-        for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
+        disable_tqdm = strtobool(os.environ.get("DISABLE_TQDM") or "false")
+        for f in tqdm.tqdm(
+            asyncio.as_completed(tasks), total=len(tasks), disable=disable_tqdm
+        ):
             response, weather_variable, url = await f
-            try:
-                response_json = json.loads(response)
-                if weather_type == WeatherType.SevenDay:
-                    data_df = _combine_seven_day(url, response_json, data_df)
-                else:
-                    data_df = _merge_to_full_df(
-                        weather_variable, weather_interval, response_json, data_df
-                    )
-            except Exception as e:
-                print(response)
-                raise e
+            response_json = json.loads(response)
+            if weather_type == WeatherType.SevenDay:
+                data_df = _combine_seven_day(url, response_json, data_df)
+            else:
+                data_df = _merge_to_full_df(
+                    weather_variable, weather_interval, response_json, data_df
+                )
 
     return data_df
