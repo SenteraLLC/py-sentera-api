@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "*"
+httpretty = "*"
+pre_commit = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+m2r = "*"
+
+[packages]
+requests = "*"
+pandas = "*"
+aiohttp = "*"
+tqdm = "*"
+tenacity = "*"
+
+[requires]
+python_version = "3.7"

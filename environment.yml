@@ -11,8 +11,10 @@ dependencies:
   - m2r
   - pip
   - pipenv
+  - httpretty
   # main dependencies
   - requests
+  - tenacity
   - pandas
   - aiohttp
   - tqdm

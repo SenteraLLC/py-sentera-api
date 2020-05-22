@@ -25,6 +25,14 @@ sentera.auth module
    :undoc-members:
    :show-inheritance:
 
+sentera.configuration module
+----------------------------
+
+.. automodule:: sentera.configuration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 sentera.weather module
 ----------------------
 
@@ -32,4 +40,3 @@ sentera.weather module
    :members:
    :undoc-members:
    :show-inheritance:
-

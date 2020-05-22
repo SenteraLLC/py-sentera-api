@@ -1,14 +1,43 @@
 """Functions to generate authorization credentials for use of the Sentera Weather API."""
 import requests
 
+from sentera.configuration import Configuration
+
+
+def get_application_token(client_id, client_secret):
+    """
+    Return an access token needed by :code:`sentera.api` calls.
+
+    :param client_id: client id from a CloudVault application
+    :param client_secret: client secret from a CloudVault application
+    :return: **token** - access token
+    """
+    if not client_id or not client_secret:
+        raise TypeError("Arguments client_id and client_secret are required.")
+
+    data = {"grant_type": "client_credentials"}
+    response = requests.post(
+        Configuration().sentera_api_url("/oauth/token"),
+        data=data,
+        allow_redirects=False,
+        auth=(client_id, client_secret),
+    )
+    if response.status_code != 200:
+        raise Exception(
+            "Failed to authenticate using client credentials. Response code of {} and message: {}".format(
+                response.status_code, response.json()
+            )
+        )
+    return response.json()
+
 
 def get_auth_token(email, password):
     """
-    Return authentication token needed by :code:`sentera.api` calls.
+    Return an access token needed by :code:`sentera.api` calls.
 
     :param email: sentera email
     :param password: sentera password
-    :return: **token** - authentication token
+    :return: **token** - access token
     """
     # The GraphQL query (with a few aditional bits included) itself defined as a multi-line string.
     query = {
@@ -20,7 +49,7 @@ def get_auth_token(email, password):
         }
     }
 
-    request = requests.post("https://api.sentera.com/v1/sessions", json=query)
+    request = requests.post(Configuration().sentera_api_url("/v1/sessions"), json=query)
     if request.status_code != 200:
         raise Exception(
             "Query failed to run by returning code of {}. {}".format(
