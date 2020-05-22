@@ -18,7 +18,7 @@ from enum import Enum
 import aiohttp
 import pandas as pd
 import tqdm
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random
 
 from sentera.configuration import Configuration
