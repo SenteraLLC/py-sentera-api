@@ -226,7 +226,7 @@ def split_time_interval(time_interval, weather_type, weather_interval):
 
         return time_intervals
 
-    if weather_type == WeatherType.Historical:
+    elif weather_type == WeatherType.Historical:
         if not time_interval:
             raise ValueError("Time interval needed for historical weather types")
         try:
@@ -238,9 +238,9 @@ def split_time_interval(time_interval, weather_type, weather_interval):
             end = datetime.datetime.strptime(time_interval[1], "%m/%d")
         except ValueError:
             raise ValueError("Incorrect time interval format, shoule be MM/DD")
-        diff = (end-start).days
-        if diff >=0:
-            return[[time_interval[0],time_interval[1]]]
+        diff = (end - start).days
+        if diff >= 0:
+            return [[time_interval[0], time_interval[1]]]
         else:
             return [[time_interval[0], "12-31"], ["01-01", time_interval[1]]]
 
