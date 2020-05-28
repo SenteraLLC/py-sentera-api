@@ -187,7 +187,7 @@ def check_time_interval(time_interval, weather_type):
     :return:
     """
     if not time_interval:
-        raise ValueError("Time interval needed for recent weather types")
+        raise ValueError(f"Time interval needed for {weather_type} weather types")
     try:
         start = datetime.datetime.strptime(
             time_interval[0], WEATHER_STRINGS[weather_type]["format"]
