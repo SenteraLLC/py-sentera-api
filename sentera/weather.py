@@ -18,7 +18,7 @@ from enum import Enum
 import aiohttp
 import pandas as pd
 import tqdm
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random
 
 from sentera.configuration import Configuration
@@ -98,6 +98,7 @@ PARAMETER_COMBINATIONS = {
         WeatherInterval.Hourly: [
             WeatherVariable.Temperature,
             WeatherVariable.Humidity,
+            WeatherVariable.Precipitation,
             WeatherVariable.WindSpeed,
         ],
         WeatherInterval.Daily: [
@@ -171,6 +172,37 @@ def create_params(weather_type, time_interval):
     return param_dict
 
 
+WEATHER_STRINGS = {
+    WeatherType.Recent: {"format": "%Y/%m/%d", "date_string": "YYYY/MM/DD"},
+    WeatherType.Historical: {"format": "%m/%d", "date_string": "MM/DD"},
+}
+
+
+def check_time_interval(time_interval, weather_type):
+    """
+        Check the time interval.
+
+    :param time_interval:
+    :param weather_type:
+    :return:
+    """
+    if not time_interval:
+        raise ValueError(f"Time interval needed for {weather_type} weather types")
+    try:
+        start = datetime.datetime.strptime(
+            time_interval[0], WEATHER_STRINGS[weather_type]["format"]
+        )
+        end = datetime.datetime.strptime(
+            time_interval[1], WEATHER_STRINGS[weather_type]["format"]
+        )
+    except ValueError:
+        raise ValueError(
+            "Incorrect time interval format, should be",
+            WEATHER_STRINGS[weather_type]["date_string"],
+        )
+    return start, end
+
+
 def split_time_interval(time_interval, weather_type, weather_interval):
     """
     Create the list of time intervals to be passed to each request made to the Weather API.
@@ -186,18 +218,7 @@ def split_time_interval(time_interval, weather_type, weather_interval):
     :return: time_intervals: List of individual intervals to be constructed into individual queries
     """
     if weather_type == WeatherType.Recent:
-        if not time_interval:
-            raise ValueError("Time interval needed for recent weather types")
-        try:
-            start = datetime.datetime.strptime(time_interval[0], "%Y/%m/%d")
-        except ValueError:
-            raise ValueError("Incorrect time interval format, should be YYYY/MM/DD")
-
-        try:
-            end = datetime.datetime.strptime(time_interval[1], "%Y/%m/%d")
-        except ValueError:
-            raise ValueError("Incorrect time interval format, should be YYYY/MM/DD")
-
+        start, end = check_time_interval(time_interval, weather_type)
         today = datetime.datetime.today()
         if (today - start).days > 730:
             raise ValueError(
@@ -226,7 +247,12 @@ def split_time_interval(time_interval, weather_type, weather_interval):
         return time_intervals
 
     elif weather_type == WeatherType.Historical:
-        return [["01-01", "07-01"], ["07-01", "12-31"]]
+        start, end = check_time_interval(time_interval, weather_type)
+        diff = (end - start).days
+        if diff >= 0:
+            return [time_interval]
+        else:
+            return [[time_interval[0], "12-31"], ["01-01", time_interval[1]]]
 
     elif weather_type == WeatherType.SevenDay:
         return [["", ""]]
