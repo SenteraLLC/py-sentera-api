@@ -2,7 +2,7 @@
 import asyncio
 
 import requests
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 
 from sentera import weather
 from sentera.configuration import Configuration
