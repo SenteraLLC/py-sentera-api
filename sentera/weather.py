@@ -250,7 +250,7 @@ def split_time_interval(time_interval, weather_type, weather_interval):
         start, end = check_time_interval(time_interval, weather_type)
         diff = (end - start).days
         if diff >= 0:
-            return [[time_interval[0], time_interval[1]]]
+            return [time_interval]
         else:
             return [[time_interval[0], "12-31"], ["01-01", time_interval[1]]]
 
