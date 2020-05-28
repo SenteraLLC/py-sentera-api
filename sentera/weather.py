@@ -180,7 +180,7 @@ WEATHER_STRINGS = {
 
 def check_time_interval(time_interval, weather_type):
     """
-        Cehck the time interval.
+        Check the time interval.
 
     :param time_interval:
     :param weather_type:
