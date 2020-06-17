@@ -109,7 +109,7 @@ def create_alert(field_sentera_id, name, message, token, url=None, key=None):
     :param name: name of the alert (string)
     :param message: brief description of the alert being made (string)
     :param token: an authorization token needed to post the alert to the specified field (string)
-    :param url: url link to more information about the alert (string)
+    :param url: (optional) url link to more information about the alert (string)
     :param key: (optional) A client-defined key to help identify the alert.
     :return: result of the request.post
     """
@@ -130,6 +130,7 @@ def create_alert(field_sentera_id, name, message, token, url=None, key=None):
     sentera_id
     name
     message
+    url
     key
     created_by {
         sentera_id
