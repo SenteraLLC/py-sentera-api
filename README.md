@@ -1,17 +1,13 @@
 <div align="center">
-  <img src="..\py-sentera-api\images\senteralogo.png">
+  <img src="https://github.com/SenteraLLC/py-sentera-api/blob/feature-documentation/images/senteralogo.png">
 </div>
 
 # Getting Started
-[Introduction](https://github.com/senterallc/py-sentera-api#introduction)
-
-[py-sentera-api](https://github.com/senterallc/py-sentera-api#py-sentera-api)
-
-[Installation](https://github.com/senterallc/py-sentera-api#installation)
-
-[Examples](https://github.com/senterallc/py-sentera-api#examples)
-
-[Documentation](https://github.com/senterallc/py-sentera-api/readme.md#documentation)
+* [Introduction](https://github.com/senterallc/py-sentera-api/readme.md#introduction)
+* [py-sentera-api](https://github.com/senterallc/py-sentera-api/readme.md#py-sentera-api)
+* [Installation](https://github.com/senterallc/py-sentera-api/readme.md#installation)
+* [Examples](https://github.com/senterallc/py-sentera-api/readme.md#examples)
+* [Documentation](https://github.com/senterallc/py-sentera-api/readme.md#documentation)
 
 ## Introduction
 Sentera provides multiple APIs (Application Programming Interfaces) to be used together to power its platforms and libraries for sensors. Use the API to connect global networks around the world to allow researchers and developers to configure sensors for planning and flight for agricultural research, weather data, drone images, satellite images, maps, elevations, soil datasets, measuring, integration, and other uses. The py-sentera-api can be used to integrate data into your application.
