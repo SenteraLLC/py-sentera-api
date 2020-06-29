@@ -2,17 +2,12 @@
   <img src="https://github.com/SenteraLLC/py-sentera-api/blob/feature-documentation/images/senteralogo.png">
 </div>
 
-
 # Getting Started
 * <a href="#introduction">Introduction</a>
-* <a href="#Documentation">documentation</a>
-
-
-* [Introduction](#introduction)
-* [py-sentera-api](#py-sentera-api)
-* [Installation](#installation)
-* [Examples](#examples)
-* [Documentation](https://github.com/senterallc/py-sentera-api/readme.md#documentation)
+* <a href="#py-sentera-api">py-sentera-api</a>
+* <a href="#installation">Installation</a>
+* <a href="#examples">Examples</a>
+* <a href="#documentation">Documentation</a>
 
 <a href="#introduction"></a>
 ## Introduction
