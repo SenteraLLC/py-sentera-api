@@ -1,6 +1,7 @@
 <div align="center">
   <img src="https://github.com/SenteraLLC/py-sentera-api/blob/feature-documentation/images/senteralogo.png">
 </div>
+![Sentera Logo](/images/senteralogo.png)
 
 # Getting Started
 * [Introduction](https://github.com/senterallc/py-sentera-api/readme.md#introduction)
