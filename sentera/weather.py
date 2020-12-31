@@ -105,6 +105,7 @@ PARAMETER_COMBINATIONS = {
             WeatherVariable.Precipitation,
             WeatherVariable.WindSpeed,
             WeatherVariable.SolarRadiation,
+            WeatherVariable.EvapotranspirationShort,
         ],
         WeatherInterval.Daily: [
             WeatherVariable.HighTemperature,
