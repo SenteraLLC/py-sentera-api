@@ -60,7 +60,6 @@ class WeatherVariable(Enum):
     EvapotranspirationTall = "evapotranspiration-tall-crop"
     Undefined = "undefined"
 
-
     def __str__(self):
         """Return the value of the WeatherVariable Enum as a string."""
         return str(self.value)
@@ -106,6 +105,7 @@ PARAMETER_COMBINATIONS = {
             WeatherVariable.WindSpeed,
             WeatherVariable.SolarRadiation,
             WeatherVariable.EvapotranspirationShort,
+            WeatherVariable.EvapotranspirationTall,
         ],
         WeatherInterval.Daily: [
             WeatherVariable.HighTemperature,
@@ -113,6 +113,7 @@ PARAMETER_COMBINATIONS = {
             WeatherVariable.Precipitation,
             WeatherVariable.SolarRadiation,
             WeatherVariable.EvapotranspirationShort,
+            WeatherVariable.EvapotranspirationTall,
         ],
     },
     WeatherType.Historical: {
