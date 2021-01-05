@@ -309,7 +309,9 @@ def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df
 )
 async def _fetch(url, session, weather_variable, time_interval, weather_type):
     async with session.get(
-        url, params=create_params(weather_type, time_interval), raise_for_status=True,
+        url,
+        params=create_params(weather_type, time_interval),
+        raise_for_status=True,
     ) as response:
         return await response.read(), weather_variable, url
 
