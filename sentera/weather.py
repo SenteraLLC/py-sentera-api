@@ -55,6 +55,9 @@ class WeatherVariable(Enum):
     LowTemperature = "low-temperature"
     Precipitation = "precipitation"
     WindSpeed = "wind-speed"
+    SolarRadiation = "solar-radiation"
+    EvapotranspirationShort = "evapotranspiration-short-crop"
+    EvapotranspirationTall = "evapotranspiration-tall-crop"
     Undefined = "undefined"
 
     def __str__(self):
@@ -100,11 +103,17 @@ PARAMETER_COMBINATIONS = {
             WeatherVariable.Humidity,
             WeatherVariable.Precipitation,
             WeatherVariable.WindSpeed,
+            WeatherVariable.SolarRadiation,
+            WeatherVariable.EvapotranspirationShort,
+            WeatherVariable.EvapotranspirationTall,
         ],
         WeatherInterval.Daily: [
             WeatherVariable.HighTemperature,
             WeatherVariable.LowTemperature,
             WeatherVariable.Precipitation,
+            WeatherVariable.SolarRadiation,
+            WeatherVariable.EvapotranspirationShort,
+            WeatherVariable.EvapotranspirationTall,
         ],
     },
     WeatherType.Historical: {
@@ -300,7 +309,9 @@ def _merge_to_full_df(weather_variable, weather_interval, response_json, data_df
 )
 async def _fetch(url, session, weather_variable, time_interval, weather_type):
     async with session.get(
-        url, params=create_params(weather_type, time_interval), raise_for_status=True,
+        url,
+        params=create_params(weather_type, time_interval),
+        raise_for_status=True,
     ) as response:
         return await response.read(), weather_variable, url
 
