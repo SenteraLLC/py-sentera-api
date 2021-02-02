@@ -37,6 +37,41 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
+def get_fields_with_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
+    """
+    Return a pandas dataframe with each field that lies within a given bounds. 
+
+    :param toke: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
+    :return: **fields_dataframe** - pandas dataframe with 
+    """
+    # TODO: Add pagination for cross org results 
+    query = """query FieldsWithBounds (
+    fields(
+        bounds: {
+            sw_geo_coordinate: {
+                latitude: $sw_lat
+                longitude: $sw_lon
+            },
+            ne_geo_coordinate: {
+                latitude: $ne_lat
+                longitude: $ne_lon
+            }
+        }) {
+            total_count
+            results {
+                sentera_id
+                name
+                latitude
+                longitude
+            }
+        }
+    }"""
+
+    result = _run_sentera_query(query, token)
+    data = result["data"]["fields"]
+    return json_normalize(data)
+
+
 def get_weather(
     weather_type,
     location_list,
