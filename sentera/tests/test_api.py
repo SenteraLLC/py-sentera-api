@@ -4,6 +4,7 @@ import httpretty
 import pytest
 import tenacity
 
+import requests 
 from ..api import create_alert, get_weather, get_fields_with_bounds
 
 
@@ -97,40 +98,16 @@ def test_get_weather():
             "daily",
             ["2020/01/01", "2020/01/03"],
         )
-    
+
 
 @httpretty.httprettified
 def test_get_fields_with_bounds():
     def request_callback(request, uri, response_headers):
 
-        query = b"query FieldsWithBounds (\\n    $sw_lat: Float!,\\n  $sw_lon: Float!,\\n $ne_lat: Float!,\\n $ne_lon: Float!) {\\n    fields ("
-        variables = b'"variables": {"sw_lat": 42.73, "sw_lon": -95.70, "ne_lat": 42.756, "ne_lon": -95.80 }'
-        
-        # query = b"""
-        #     query FieldsWithBounds($sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
-        #         fields(
-        #             bounds: {
-        #                 sw_geo_coordinate: {
-        #                     latitude: $sw_lat
-        #                     longitude: $sw_lon
-        #                 }, 
-        #                 ne_geo_coordinate: {
-        #                     latitude: $ne_lat
-        #                     longitude: $ne_lon
-        #                 }
-        #             }) {
-        #                 total_count
-        #                 results {
-        #                     sentera_id
-        #                     name
-        #                     latitude
-        #                     longitude
-        #                 }
-        #             }
-        #     }"""
+        query = b'{"query": "\\n        FieldsWithBounds('
     
-        assert variables in request.body
         assert query in request.body
+
         return [
             200,
             response_headers,
@@ -142,7 +119,7 @@ def test_get_fields_with_bounds():
                         "results": [
                             {
                             "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
-                            "name": "Jeff's Field",
+                            "name": "Boundary Test",
                             "latitude": 42.734587032522,
                             "longitude": -95.625703409314
                             }
@@ -156,7 +133,6 @@ def test_get_fields_with_bounds():
     httpretty.register_uri(
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
     )
-
     response = get_fields_with_bounds(
         "ddoPA-16Oaw3Ru2WFxnlo-RhBF18y82oHrzeUPdeNgI",
         42.73,
@@ -164,3 +140,5 @@ def test_get_fields_with_bounds():
         42.756,
         -95.80
     )
+    assert response["data"]["fields"]["total_count"] == 1
+    assert len(httpretty.latest_requests()) == 1
