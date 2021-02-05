@@ -7,6 +7,7 @@ import tenacity
 import requests 
 from ..api import create_alert, get_weather, get_fields_with_bounds
 
+TOKEN = "ddoPA-16Oaw3Ru2WFxnlo-RhBF18y82oHrzeUPdeNgI"
 
 @httpretty.httprettified
 def test_create_alert_with_key_success():
@@ -103,9 +104,7 @@ def test_get_weather():
 @httpretty.httprettified
 def test_get_fields_with_bounds():
     def request_callback(request, uri, response_headers):
-
         query = b'{"query": "\\n        FieldsWithBounds('
-    
         assert query in request.body
 
         return [
@@ -134,7 +133,7 @@ def test_get_fields_with_bounds():
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
     )
     response = get_fields_with_bounds(
-        "ddoPA-16Oaw3Ru2WFxnlo-RhBF18y82oHrzeUPdeNgI",
+        TOKEN, 
         42.73,
         -95.70,
         42.756,

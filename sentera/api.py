@@ -22,9 +22,9 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Return a pandas dataframe with information on each field within the user's account.
+    Return JSON result with information on each field within the user's account.
 
-    Returned DataFrame has columns as follows: (*sentera_id*, *name*, *latitude*, *longitude*)
+    Returned JSON has the following values: (*sentera_id*, *name*, *latitude*, *longitude*)
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :return: **fields_dataframe** - pandas dataframe
@@ -46,8 +46,12 @@ def get_fields_with_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
     """
     # TODO: Add pagination for cross org results 
     query = """
-        query($sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
+        FieldsWithBounds($sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
             fields(
+                pagination: {
+                    page: $page
+                    page_size: 1000
+                }
                 bounds: {
                     sw_geo_coordinate: {
                         latitude: $sw_lat
@@ -77,8 +81,7 @@ def get_fields_with_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
 
     data = {"query": query, "variables": variables}
     result = _run_sentera_query(data, token)
-    data = result["data"]["fields"]
-    return json_normalize(data)
+    return result
 
 
 def get_weather(
