@@ -3,11 +3,13 @@ import json
 import httpretty
 import pytest
 import tenacity
+import unittest
 
-import requests 
-from ..api import create_alert, get_weather, get_fields_with_bounds
+import requests
+from ..api import create_alert, get_weather, get_fields_within_bounds
 
 TOKEN = "ddoPA-16Oaw3Ru2WFxnlo-RhBF18y82oHrzeUPdeNgI"
+
 
 @httpretty.httprettified
 def test_create_alert_with_key_success():
@@ -102,7 +104,7 @@ def test_get_weather():
 
 
 @httpretty.httprettified
-def test_get_fields_with_bounds():
+def test_get_fields_within_bounds():
     def request_callback(request, uri, response_headers):
         query = b'{"query": "\\n        FieldsWithBounds('
         assert query in request.body
@@ -114,30 +116,24 @@ def test_get_fields_with_bounds():
                 {
                     "data": {
                         "fields": {
-                        "total_count": 1,
-                        "results": [
-                            {
-                            "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
-                            "name": "Boundary Test",
-                            "latitude": 42.734587032522,
-                            "longitude": -95.625703409314
-                            }
-                        ]
+                            "total_count": 1,
+                            "results": [
+                                {
+                                    "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
+                                    "name": "Boundary Test",
+                                    "latitude": 42.734587032522,
+                                    "longitude": -95.625703409314,
+                                }
+                            ],
                         }
                     }
                 }
             ),
         ]
-    
+
     httpretty.register_uri(
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
     )
-    response = get_fields_with_bounds(
-        TOKEN, 
-        42.73,
-        -95.70,
-        42.756,
-        -95.80
-    )
-    assert response["data"]["fields"]["total_count"] == 1
+    response = get_fields_within_bounds(TOKEN, 1, 42.73, -95.70, 42.756, -95.80)
+
     assert len(httpretty.latest_requests()) == 1

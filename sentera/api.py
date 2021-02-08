@@ -22,9 +22,9 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Return JSON result with information on each field within the user's account.
+    Returns a pandas dataframe result with information on each field within the user's account.
 
-    Returned JSON has the following values: (*sentera_id*, *name*, *latitude*, *longitude*)
+    Returned dataframe has the following values: (*sentera_id*, *name*, *latitude*, *longitude*)
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :return: **fields_dataframe** - pandas dataframe
@@ -37,16 +37,19 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
-def get_fields_with_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
+def get_fields_within_bounds(token, page, sw_lat, sw_lon, ne_lat, ne_lon):
     """
-    Return a pandas dataframe with each field that lies within a given bounds. 
+    Returns a JSON result of fields within a given boundry.
+    The function takes the southwest and northeast coordinates of a paticular area of interest,
+    returning all fields inside those coordinates.
 
-    :param toke: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
-    :return: **fields_dataframe** - pandas dataframe 
+    :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
+    :param page:
+    :return: **fields** - JSON
     """
-    # TODO: Add pagination for cross org results 
+
     query = """
-        FieldsWithBounds($sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
+        FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
             fields(
                 pagination: {
                     page: $page
@@ -73,15 +76,16 @@ def get_fields_with_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
         }"""
 
     variables = {
+        "page": page,
         "sw_lat": sw_lat,
         "sw_lon": sw_lon,
         "ne_lat": ne_lat,
-        "ne_lon": ne_lon
+        "ne_lon": ne_lon,
     }
 
     data = {"query": query, "variables": variables}
-    result = _run_sentera_query(data, token)
-    return result
+    fields = _run_sentera_query(data, token)
+    return fields
 
 
 def get_weather(
