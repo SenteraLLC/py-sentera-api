@@ -117,6 +117,8 @@ def test_get_fields_within_bounds():
                     "data": {
                         "fields": {
                             "total_count": 1,
+                            "page": 1,
+                            "page_size": 1000,
                             "results": [
                                 {
                                     "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
@@ -136,4 +138,45 @@ def test_get_fields_within_bounds():
     )
     response = get_fields_within_bounds(TOKEN, 1, 42.73, -95.70, 42.756, -95.80)
 
+    assert response["data"]["fields"]["results"][0]["name"] == "Boundary Test"
     assert len(httpretty.latest_requests()) == 1
+
+
+@httpretty.activate
+def test_fields_pagination():
+    """Test whether the GraphQL API call works properly on paginated results"""
+    requests = []
+
+    def request_callback(request, uri, response_headers):
+
+        requests.append(httpretty.last_request())
+        return [
+            200,
+            response_headers,
+            json.dumps(
+                {
+                    "data": {
+                        "fields": {
+                            "total_count": 1,
+                            "page": 1,
+                            "page_size": 1000,
+                            "results": [
+                                {
+                                    "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
+                                    "name": "Boundary Test",
+                                    "latitude": 42.734587032522,
+                                    "longitude": -95.625703409314,
+                                }
+                            ],
+                        }
+                    }
+                }
+            ),
+        ]
+
+    httpretty.register_uri(
+        httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
+    )
+    response = get_fields_within_bounds(TOKEN, 1, 42.73, -95.70, 42.756, -95.80)
+    # First page
+    assert response["data"]["fields"]["page"] == 1

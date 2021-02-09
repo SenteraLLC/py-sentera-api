@@ -66,6 +66,8 @@ def get_fields_within_bounds(token, page, sw_lat, sw_lon, ne_lat, ne_lon):
                     }
                 }) {
                     total_count
+                    page
+                    page_size
                     results {
                         sentera_id
                         name
