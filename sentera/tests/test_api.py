@@ -8,7 +8,7 @@ import unittest
 import requests
 from ..api import create_alert, get_weather, get_fields_within_bounds
 
-TOKEN = "ddoPA-16Oaw3Ru2WFxnlo-RhBF18y82oHrzeUPdeNgI"
+TOKEN = "aaa"
 
 
 @httpretty.httprettified
