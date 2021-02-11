@@ -17,6 +17,7 @@ pandas = "*"
 aiohttp = "*"
 tqdm = "*"
 tenacity = "*"
+requests-mock = "*"
 
 [requires]
 python_version = "3.7"

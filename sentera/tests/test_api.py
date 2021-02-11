@@ -1,14 +1,18 @@
 import json
-
+import os
 import httpretty
 import pytest
 import tenacity
 import unittest
-import requests
 import pandas as pd
+from pandas import json_normalize
+import requests_mock
+import pathlib
+import json
+
 
 from pandas._testing import assert_frame_equal
-from ..api import create_alert, get_weather, get_fields_within_bounds
+from ..api import create_alert, get_weather, get_fields_within_bounds, _run_sentera_query
 
 TOKEN = "aaa"
 
@@ -122,7 +126,7 @@ def test_get_fields_within_bounds():
                             "page_size": 1000,
                             "results": [
                                 {
-                                    "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
+                                    "sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003",
                                     "name": "Boundary Test",
                                     "latitude": 42.734587032522,
                                     "longitude": -95.625703409314,
@@ -134,7 +138,7 @@ def test_get_fields_within_bounds():
             ),
         ]
 
-    fields_df = pd.DataFrame({"sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857", "name": "Boundary Test", "latitude": [42.734587], "longitude": [-95.625703]})
+    fields_df = pd.DataFrame({"sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003", "name": "Boundary Test", "latitude": [42.734587], "longitude": [-95.625703]})
 
     httpretty.register_uri(
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
@@ -142,6 +146,56 @@ def test_get_fields_within_bounds():
     response = get_fields_within_bounds(TOKEN, 42.73, -95.70, 42.756, -95.80)
     assert_frame_equal(response, fields_df)
     assert len(httpretty.latest_requests()) == 1
+
+
+class test_get_fields_within_bounds_pagination(unittest.TestCase):
+
+    def test_pagination(self):
+        with open(pathlib.Path(__file__).parent / 'pagination_first_page.json') as first_file:
+            mock_response_first_page = first_file.read()
+        
+        with open(pathlib.Path(__file__).parent / 'pagination_second_page.json') as second_file:
+            mock_response_second_page = second_file.read()
+
+        expected_result = [
+                        {
+                        "data": {
+                            "fields": {
+                                "total_count": 3,
+                                "page": 1,
+                                "page_size": 2,
+                                "results": [
+                                    {
+                                        "sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003",
+                                        "name": "Boundary Test",
+                                        "latitude": 42.734587032522,
+                                        "longitude": -95.625703409314,
+                                    },
+                                    {
+                                        "sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003",
+                                        "name": "Boundary Test 2",
+                                        "latitude": 42.734587032522,
+                                        "longitude": -95.625703409314,
+                                    },
+                                    {
+                                        "sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003",
+                                        "name": "Boundary Test 3",
+                                        "latitude": 42.734587032522,
+                                        "longitude": -95.625703409314,
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                ]
+        
+        expected_df = json_normalize(expected_result[0]["data"]["fields"]["results"])
+
+        with requests_mock.Mocker() as m:
+            m.register_uri('POST', 'https://apitest.sentera.com/graphql', [{'text': mock_response_first_page}, {'text': mock_response_second_page}])
+            response = get_fields_within_bounds(TOKEN, 42.73, -95.70, 42.756, -95.80)
+    
+        assert_frame_equal(response.reset_index(drop=True), expected_df.reset_index(drop=True)) 
 
 
 @httpretty.activate

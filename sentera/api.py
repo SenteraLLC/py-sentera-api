@@ -78,6 +78,7 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
         }"""
 
     variables = {
+        "page": 1,
         "sw_lat": sw_lat,
         "sw_lon": sw_lon,
         "ne_lat": ne_lat,
