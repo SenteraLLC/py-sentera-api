@@ -1,23 +1,16 @@
 import json
-import os
-import httpretty
-import pytest
-import tenacity
-import unittest
-import pandas as pd
-from pandas import json_normalize
-import requests_mock
 import pathlib
-import json
+import unittest
 
-
+import httpretty
+import pandas as pd
+import pytest
+import requests_mock
+import tenacity
+from pandas import json_normalize
 from pandas._testing import assert_frame_equal
-from ..api import (
-    create_alert,
-    get_weather,
-    get_fields_within_bounds,
-    _run_sentera_query,
-)
+
+from ..api import create_alert, get_fields_within_bounds, get_weather
 
 TOKEN = "aaa"
 

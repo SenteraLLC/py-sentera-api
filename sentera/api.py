@@ -1,9 +1,10 @@
 """Functions exposed to the user that make requests to the Sentera Weather API."""
-import math
 import asyncio
-import requests
+import math
 
+import requests
 from pandas import json_normalize
+
 from sentera import weather
 from sentera.configuration import Configuration
 
@@ -22,7 +23,7 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Returns a pandas dataframe result with information on each field within the user's account.
+    Return a pandas dataframe result with information on each field within the user's account.
 
     Returned dataframe has the following values: (*sentera_id*, *name*, *latitude*, *longitude*)
 
@@ -39,7 +40,8 @@ def get_all_fields(token):
 
 def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
     """
-    Returns a pandas dataframe result of fields within a given boundry.
+    Return a pandas dataframe result of fields within a given boundry.
+
     The function takes the southwest and northeast coordinates of a paticular area of interest,
     returning all fields inside those coordinates.
 
@@ -47,7 +49,6 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
     :param page:
     :return: **fields_df** - pandas dataframe
     """
-
     query = """
         FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
             fields(
@@ -59,7 +60,7 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
                     sw_geo_coordinate: {
                         latitude: $sw_lat
                         longitude: $sw_lon
-                    }, 
+                    },
                     ne_geo_coordinate: {
                         latitude: $ne_lat
                         longitude: $ne_lon
