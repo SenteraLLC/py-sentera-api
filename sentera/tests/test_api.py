@@ -113,7 +113,10 @@ def test_get_weather():
 def test_get_fields_within_bounds():
     def request_callback(request, uri, response_headers):
         query = b'{"query": "\\n        FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {'
+        variables = b'"variables": {"page": 1, "sw_lat": 42.73, "sw_lon": -95.7, "ne_lat": 42.756, "ne_lon": -95.8}}'
+
         assert query in request.body
+        assert variables in request.body
         return [
             200,
             response_headers,
