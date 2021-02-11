@@ -1,9 +1,9 @@
 """Functions exposed to the user that make requests to the Sentera Weather API."""
+import math
 import asyncio
-
 import requests
-from pandas import json_normalize
 
+from pandas import json_normalize
 from sentera import weather
 from sentera.configuration import Configuration
 
@@ -37,15 +37,15 @@ def get_all_fields(token):
     return json_normalize(data)
 
 
-def get_fields_within_bounds(token, page, sw_lat, sw_lon, ne_lat, ne_lon):
+def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
     """
-    Returns a JSON result of fields within a given boundry.
+    Returns a pandas dataframe result of fields within a given boundry.
     The function takes the southwest and northeast coordinates of a paticular area of interest,
     returning all fields inside those coordinates.
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :param page:
-    :return: **fields** - JSON
+    :return: **fields_df** - pandas dataframe
     """
 
     query = """
@@ -78,7 +78,6 @@ def get_fields_within_bounds(token, page, sw_lat, sw_lon, ne_lat, ne_lon):
         }"""
 
     variables = {
-        "page": page,
         "sw_lat": sw_lat,
         "sw_lon": sw_lon,
         "ne_lat": ne_lat,
@@ -86,8 +85,21 @@ def get_fields_within_bounds(token, page, sw_lat, sw_lon, ne_lat, ne_lon):
     }
 
     data = {"query": query, "variables": variables}
-    fields = _run_sentera_query(data, token)
-    return fields
+    response = _run_sentera_query(data, token)
+
+    fields = response["data"]["fields"]["results"]
+    fields_df = json_normalize(fields)
+    total_pages = math.ceil(response["data"]["fields"]["total_count"] / response["data"]["fields"]["page_size"])
+
+    for page in range(2, total_pages + 1):
+        variables["page"] = page
+        data = {"query": query, "variables": variables}
+        response = _run_sentera_query(data, token)
+
+        additional_fields = response["data"]["fields"]["results"]
+        fields_df = fields_df.append(json_normalize(additional_fields))
+
+    return fields_df
 
 
 def get_weather(

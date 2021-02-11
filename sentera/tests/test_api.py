@@ -4,8 +4,10 @@ import httpretty
 import pytest
 import tenacity
 import unittest
-
 import requests
+import pandas as pd
+
+from pandas._testing import assert_frame_equal
 from ..api import create_alert, get_weather, get_fields_within_bounds
 
 TOKEN = "aaa"
@@ -106,9 +108,8 @@ def test_get_weather():
 @httpretty.httprettified
 def test_get_fields_within_bounds():
     def request_callback(request, uri, response_headers):
-        query = b'{"query": "\\n        FieldsWithBounds('
+        query = b'{"query": "\\n        FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {'
         assert query in request.body
-
         return [
             200,
             response_headers,
@@ -133,50 +134,38 @@ def test_get_fields_within_bounds():
             ),
         ]
 
+    fields_df = pd.DataFrame({"sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857", "name": "Boundary Test", "latitude": [42.734587], "longitude": [-95.625703]})
+
     httpretty.register_uri(
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
     )
-    response = get_fields_within_bounds(TOKEN, 1, 42.73, -95.70, 42.756, -95.80)
-
-    assert response["data"]["fields"]["results"][0]["name"] == "Boundary Test"
+    response = get_fields_within_bounds(TOKEN, 42.73, -95.70, 42.756, -95.80)
+    assert_frame_equal(response, fields_df)
     assert len(httpretty.latest_requests()) == 1
 
 
 @httpretty.activate
-def test_fields_pagination():
-    """Test whether the GraphQL API call works properly on paginated results"""
-    requests = []
-
+def test_empty_dataframe():
     def request_callback(request, uri, response_headers):
-
-        requests.append(httpretty.last_request())
         return [
-            200,
-            response_headers,
-            json.dumps(
-                {
-                    "data": {
-                        "fields": {
-                            "total_count": 1,
-                            "page": 1,
-                            "page_size": 1000,
-                            "results": [
-                                {
-                                    "sentera_id": "sfgz3up_AS_8brhbkSentera_CV_shar_b48fa1c_210203_000857",
-                                    "name": "Boundary Test",
-                                    "latitude": 42.734587032522,
-                                    "longitude": -95.625703409314,
-                                }
-                            ],
-                        }
+        200,
+        response_headers,
+        json.dumps(
+            {
+                "data": {
+                    "fields": {
+                        "total_count": 0,
+                        "page": 1,
+                        "page_size": 1000,
+                        "results": [ ],
                     }
                 }
-            ),
-        ]
-
+            }
+        ),
+    ]
+    fields_df = pd.DataFrame({})
     httpretty.register_uri(
         httpretty.POST, "https://apitest.sentera.com/graphql", body=request_callback
     )
-    response = get_fields_within_bounds(TOKEN, 1, 42.73, -95.70, 42.756, -95.80)
-    # First page
-    assert response["data"]["fields"]["page"] == 1
+    response = get_fields_within_bounds(TOKEN, 0, 0, 0, 0)
+    assert_frame_equal(response, fields_df) 
