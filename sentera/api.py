@@ -90,7 +90,10 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
 
     fields = response["data"]["fields"]["results"]
     fields_df = json_normalize(fields)
-    total_pages = math.ceil(response["data"]["fields"]["total_count"] / response["data"]["fields"]["page_size"])
+    total_pages = math.ceil(
+        response["data"]["fields"]["total_count"]
+        / response["data"]["fields"]["page_size"]
+    )
 
     for page in range(2, total_pages + 1):
         variables["page"] = page
