@@ -11,7 +11,7 @@ from sentera.configuration import Configuration
 
 def _run_sentera_query(query, token):
     url = Configuration().sentera_api_url("/graphql")
-    headers = {"Authorization": token}
+    headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(url=url, json=query, headers=headers)
     if response.status_code != 200:
         raise Exception(
@@ -50,7 +50,7 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
     :return: **fields_df** - pandas dataframe
     """
     query = """
-        FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
+        query FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
             fields(
                 pagination: {
                     page: $page
