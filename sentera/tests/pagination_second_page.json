@@ -1,0 +1,17 @@
+{
+    "data": {
+        "fields": {
+            "total_count": 3,
+            "page": 2,
+            "page_size": 2,
+            "results": [
+                {
+                    "sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003",
+                    "name": "Boundary Test 3",
+                    "latitude": 42.734587032522,
+                    "longitude": -95.625703409314
+                }
+            ]
+        }
+    }
+}

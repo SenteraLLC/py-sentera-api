@@ -1,5 +1,6 @@
 """Functions exposed to the user that make requests to the Sentera Weather API."""
 import asyncio
+import math
 
 import requests
 from pandas import json_normalize
@@ -10,7 +11,7 @@ from sentera.configuration import Configuration
 
 def _run_sentera_query(query, token):
     url = Configuration().sentera_api_url("/graphql")
-    headers = {"Authorization": token}
+    headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(url=url, json=query, headers=headers)
     if response.status_code != 200:
         raise Exception(
@@ -22,9 +23,9 @@ def _run_sentera_query(query, token):
 
 def get_all_fields(token):
     """
-    Return a pandas dataframe with information on each field within the user's account.
+    Return a pandas dataframe result with information on each field within the user's account.
 
-    Returned DataFrame has columns as follows: (*sentera_id*, *name*, *latitude*, *longitude*)
+    Returned dataframe has the following values: (*sentera_id*, *name*, *latitude*, *longitude*)
 
     :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
     :return: **fields_dataframe** - pandas dataframe
@@ -35,6 +36,75 @@ def get_all_fields(token):
     result = _run_sentera_query(query, token)
     data = result["data"]["fields"]["results"]
     return json_normalize(data)
+
+
+def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
+    """
+    Return a pandas dataframe result of fields within a given boundry.
+
+    The function takes the southwest and northeast coordinates of a paticular area of interest,
+    returning all fields inside those coordinates.
+
+    :param token: Sentera auth token returned from :code:`sentera.auth.get_auth_token()`.
+    :param page:
+    :return: **fields_df** - pandas dataframe
+    """
+    query = """
+        query FieldsWithBounds($page: Int!, $sw_lat: Float!, $sw_lon: Float!, $ne_lat: Float!, $ne_lon: Float!) {
+            fields(
+                pagination: {
+                    page: $page
+                    page_size: 1000
+                }
+                bounds: {
+                    sw_geo_coordinate: {
+                        latitude: $sw_lat
+                        longitude: $sw_lon
+                    },
+                    ne_geo_coordinate: {
+                        latitude: $ne_lat
+                        longitude: $ne_lon
+                    }
+                }) {
+                    total_count
+                    page
+                    page_size
+                    results {
+                        sentera_id
+                        name
+                        latitude
+                        longitude
+                    }
+                }
+        }"""
+
+    variables = {
+        "page": 1,
+        "sw_lat": sw_lat,
+        "sw_lon": sw_lon,
+        "ne_lat": ne_lat,
+        "ne_lon": ne_lon,
+    }
+
+    data = {"query": query, "variables": variables}
+    response = _run_sentera_query(data, token)
+
+    fields = response["data"]["fields"]["results"]
+    fields_df = json_normalize(fields)
+    total_pages = math.ceil(
+        response["data"]["fields"]["total_count"]
+        / response["data"]["fields"]["page_size"]
+    )
+
+    for page in range(2, total_pages + 1):
+        variables["page"] = page
+        data = {"query": query, "variables": variables}
+        response = _run_sentera_query(data, token)
+
+        additional_fields = response["data"]["fields"]["results"]
+        fields_df = fields_df.append(json_normalize(additional_fields))
+
+    return fields_df
 
 
 def get_weather(
