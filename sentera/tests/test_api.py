@@ -18,9 +18,8 @@ TOKEN = "aaa"
 @httpretty.httprettified
 def test_create_alert_with_key_success():
     def request_callback(request, uri, response_headers):
-        mutation = b"mutation CreateAlert (\\n    $field_sentera_id: ID!,\\n    $name: String!,\\n    $message: String!,\\n    $key: String,\\n    $url: Url,\\n $details:JSON) {\\n    create_alert ("
-        variables = b'"variables": {"field_sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003", "name": "Southern Corn Rust Alert", "message": "Current weather conditions indicate things.", "key": "corn_rust", "url": "https://www.sentera.com", "details": None}'
-        print(request.body)
+        mutation = b"mutation CreateAlert (\\n    $field_sentera_id: ID!,\\n    $name: String!,\\n    $message: String!,\\n    $key: String,\\n    $url: Url,\\n    $details: JSON) {\\n    create_alert ("
+        variables = b'"variables": {"field_sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003", "name": "Southern Corn Rust Alert", "message": "Current weather conditions indicate things.", "key": "corn_rust", "url": "https://www.sentera.com", "details": null}'
         assert variables in request.body
         assert mutation in request.body
         return [
@@ -62,8 +61,9 @@ def test_create_alert_with_key_success():
 @httpretty.httprettified
 def test_create_alert_without_key_success():
     def request_callback(request, uri, response_headers):
-        mutation = b"mutation CreateAlert (\\n    $field_sentera_id: ID!,\\n    $name: String!,\\n    $message: String!,\\n    $key: String,\\n    $url: Url, \\n $details: JSON) {\\n    create_alert ("
+        mutation = b"mutation CreateAlert (\\n    $field_sentera_id: ID!,\\n    $name: String!,\\n    $message: String!,\\n    $key: String,\\n    $url: Url,\\n    $details: JSON) {\\n    create_alert ("
         variables = b'"variables": {"field_sentera_id": "gyq8ll6_AL_8brhbkSentera_CV_shar_e599fde_200326_182003", "name": "Southern Corn Rust Alert", "message": "Current weather conditions indicate things.", "key": null, "url": null, "details": null}'
+        print(request.body)
         assert variables in request.body
         assert mutation in request.body
         return [

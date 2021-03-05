@@ -12,6 +12,7 @@ dependencies:
   - pip
   - pipenv
   - httpretty
+  - requests-mock
   # main dependencies
   - requests
   - tenacity
