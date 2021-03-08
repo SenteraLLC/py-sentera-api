@@ -35,7 +35,7 @@ def test_create_alert_with_key_success():
                             "name": "Southern Corn Rust Alert",
                             "message": "Current weather conditions indicate things.",
                             "url": "https://www.sentera.com",
-                            "details": "[{ \"name\": \"details!\", \"value\": \"1234\"}]",
+                            "details": '[{ "name": "details!", "value": "1234"}]',
                             "created_at": "2020-03-26T18:20:03Z",
                         }
                     }
@@ -53,7 +53,7 @@ def test_create_alert_with_key_success():
         token="token123",
         key="corn_rust",
         url="https://www.sentera.com",
-        details=[{ "name": "details!", "value": "1234"}],
+        details=[{"name": "details!", "value": "1234"}],
     )
     assert response["data"]["create_alert"]["key"] == "corn_rust"
     assert len(httpretty.latest_requests()) == 1
