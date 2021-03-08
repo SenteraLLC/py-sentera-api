@@ -171,7 +171,9 @@ def get_weather(
     return weather_df
 
 
-def create_alert(field_sentera_id, name, message, token, key=None, url=None):
+def create_alert(
+    field_sentera_id, name, message, token, key=None, url=None, details=None
+):
     """
     Create alert content and post alert mutation to https://api.sentera.com/graphql.
 
@@ -181,6 +183,7 @@ def create_alert(field_sentera_id, name, message, token, key=None, url=None):
     :param token: an authorization token needed to post the alert to the specified field (string)
     :param key: (optional) A client-defined key to help identify the alert.
     :param url: (optional) url link to more information about the alert (url)
+    :param details: (optional) A set of key value pairs that can be used to produce a translated alert (JSON).
     :return: result of the request.post
     """
     query = """mutation CreateAlert (
@@ -188,13 +191,15 @@ def create_alert(field_sentera_id, name, message, token, key=None, url=None):
     $name: String!,
     $message: String!,
     $key: String,
-    $url: Url) {
+    $url: Url,
+    $details: JSON) {
     create_alert (
     field_sentera_id: $field_sentera_id
     name: $name
     message: $message
     key: $key
     url: $url
+    details: $details
     )
     {
     sentera_id
@@ -202,6 +207,7 @@ def create_alert(field_sentera_id, name, message, token, key=None, url=None):
     message
     key
     url
+    details
     created_by {
         sentera_id
         first_name
@@ -217,6 +223,7 @@ def create_alert(field_sentera_id, name, message, token, key=None, url=None):
         "message": message,
         "key": key,
         "url": url,
+        "details": details,
     }
     data = {"query": query, "variables": variables}
     result = _run_sentera_query(data, token)
