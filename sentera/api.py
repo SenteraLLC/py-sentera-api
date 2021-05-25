@@ -74,6 +74,7 @@ def get_fields_within_bounds(token, sw_lat, sw_lon, ne_lat, ne_lon):
                         name
                         latitude
                         longitude
+                        active
                     }
                 }
         }"""

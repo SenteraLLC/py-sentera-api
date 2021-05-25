@@ -135,6 +135,7 @@ def test_get_fields_within_bounds():
                                     "name": "Boundary Test",
                                     "latitude": 42.734587032522,
                                     "longitude": -95.625703409314,
+                                    "active": "true",
                                 }
                             ],
                         }
@@ -149,6 +150,7 @@ def test_get_fields_within_bounds():
             "name": "Boundary Test",
             "latitude": [42.734587],
             "longitude": [-95.625703],
+            "active": "true",
         }
     )
 
