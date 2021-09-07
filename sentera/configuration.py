@@ -2,29 +2,8 @@
 
 import os
 
-ENVIRONMENT_CONFIGS = {
-    "dev": {
-        "sentera_api_url": "https://apidev.sentera.com",
-        "weather_api_url": "https://weatherdev.sentera.com",
-    },
-    "prod": {
-        "sentera_api_url": "https://api.sentera.com",
-        "weather_api_url": "https://weather.sentera.com",
-    },
-    "staging": {
-        "sentera_api_url": "https://apistaging.sentera.com",
-        "weather_api_url": "https://weatherstaging.sentera.com",
-    },
-    "staging2": {
-        "sentera_api_url": "https://apistaging2.sentera.com",
-        "weather_api_url": "https://weatherstaging2.sentera.com",
-    },
-    "test": {
-        # This environment is intended to be used by tests and is not a real environment.
-        "sentera_api_url": "https://apitest.sentera.com",
-        "weather_api_url": "https://weathertest.sentera.com",
-    },
-}
+ENV_SENTERA_API_URL = "SENTERA_API_URL"
+ENV_WEATHER_API_URL = "WEATHER_API_URL"
 
 
 class Configuration:
@@ -47,7 +26,22 @@ class Configuration:
             environment = environment.lower()
         self.environment = environment
 
-        self.config = ENVIRONMENT_CONFIGS[environment]
+        if self.environment == "prod":
+            self.config = {
+                "sentera_api_url": "https://api.sentera.com",
+                "weather_api_url": "https://weather.sentera.com",
+            }
+        else:
+            self.config = {
+                "sentera_api_url": f"https://api{self.environment}.sentera.com",
+                "weather_api_url": f"https://weather{self.environment}.sentera.com",
+            }
+
+        if ENV_SENTERA_API_URL in os.environ:
+            self.config["sentera_api_url"] = os.environ.get(ENV_SENTERA_API_URL)
+
+        if ENV_WEATHER_API_URL in os.environ:
+            self.config["weather_api_url"] = os.environ.get(ENV_WEATHER_API_URL)
 
     def sentera_api_url(self, path):
         """
