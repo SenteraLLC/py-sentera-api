@@ -238,7 +238,7 @@ def split_time_interval(time_interval, weather_type, weather_interval):
         if weather_interval == WeatherInterval.Daily:
             delta = datetime.timedelta(days=90)
         else:
-            delta = datetime.timedelta(days=5)
+            delta = datetime.timedelta(days=10)
 
         time_intervals = []
         current_time = start
