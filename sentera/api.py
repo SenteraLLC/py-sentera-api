@@ -4,11 +4,15 @@ import math
 
 import requests
 from pandas import json_normalize
+from ratelimit import limits
 
 from sentera import weather
 from sentera.configuration import Configuration
 
+TIME_PERIOD = 1
 
+
+@limits(calls=200, period=TIME_PERIOD)
 def _run_sentera_query(query, token):
     url = Configuration().sentera_api_url("/graphql")
     headers = {"Authorization": f"Bearer {token}"}

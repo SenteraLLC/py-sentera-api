@@ -19,4 +19,5 @@ dependencies:
   - pandas
   - aiohttp
   - tqdm
+  - ratelimit
   # subpackage dependencies

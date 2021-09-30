@@ -18,6 +18,7 @@ aiohttp = "*"
 tqdm = "*"
 tenacity = "*"
 requests-mock = "*"
+ratelimit = "*"
 
 [requires]
 python_version = "3.7"
