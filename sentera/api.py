@@ -13,7 +13,7 @@ TIME_PERIOD = 1
 
 
 @sleep_and_retry
-@limits(calls=200, period=TIME_PERIOD)
+@limits(calls=400, period=TIME_PERIOD)
 def _run_sentera_query(query, token):
     url = Configuration().sentera_api_url("/graphql")
     headers = {"Authorization": f"Bearer {token}"}
